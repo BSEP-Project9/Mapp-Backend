@@ -1,4 +1,4 @@
-package com.example.Mapp.model.repository;
+package com.example.Mapp.repository;
 
 import com.example.Mapp.model.Contribution;
 import org.springframework.data.jpa.repository.JpaRepository;

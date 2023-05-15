@@ -1,7 +1,7 @@
-package com.example.Mapp.model.service;
+package com.example.Mapp.service;
 
 import com.example.Mapp.model.Contribution;
-import com.example.Mapp.model.repository.ContributionRepository;
+import com.example.Mapp.repository.ContributionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

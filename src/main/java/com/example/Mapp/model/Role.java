@@ -1,6 +1,6 @@
 package com.example.Mapp.model;
 
-import com.example.Mapp.model.enums.Seniority;
+import com.example.Mapp.enums.Seniority;
 import jakarta.persistence.*;
 import lombok.*;
 
