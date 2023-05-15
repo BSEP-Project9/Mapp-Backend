@@ -1,4 +1,4 @@
-package com.example.Mapp.model.enums;
+package com.example.Mapp.enums;
 
 public enum Seniority {
 

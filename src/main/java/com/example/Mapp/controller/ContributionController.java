@@ -1,8 +1,8 @@
-package com.example.Mapp.model.controller;
+package com.example.Mapp.controller;
 
 
 import com.example.Mapp.model.Contribution;
-import com.example.Mapp.model.service.ContributionService;
+import com.example.Mapp.service.ContributionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
