@@ -20,6 +20,7 @@ VALUES('jelena@gmail.com', '123', 'Jelena', 'Petric', '0665483452', false, 2, 3,
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
 VALUES('bojana@gmail.com', '123', 'Bojana', 'Zekanovic', '0665483452', false, 2, 4, '2000-07-08');
 
+
 -- SKILL
 INSERT INTO skill(name, rating) VALUES('Git', 2);
 INSERT INTO skill(name, rating) VALUES('Java', 5);

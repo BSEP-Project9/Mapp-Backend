@@ -10,6 +10,8 @@ import com.example.Mapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import javax.script.ScriptEngine;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -45,4 +47,20 @@ public class UserService {
         credentials.setAddress(address);
         return credentials;
     }
+
+    public List<UserDTO> getAllInactiveUsers(){
+        List<User> users = userRepository.findAll();
+        List<User> usersCopy = new ArrayList<>();
+        users.forEach(user -> {
+            if(!user.isActivated()){
+                usersCopy.add(user);
+            }
+        });
+        List<UserDTO> usersFinal = new ArrayList<>();
+        usersCopy.forEach(user -> {
+            usersFinal.add(userMapper.EntityToDto(user));
+        });
+        return usersFinal;
+    }
+
 }
