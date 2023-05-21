@@ -1,16 +1,8 @@
-package com.example.Mapp.DTO;
+package com.example.Mapp.dto;
 
-import com.example.Mapp.model.Address;
-import com.example.Mapp.model.Contribution;
-import com.example.Mapp.model.Role;
-import com.example.Mapp.model.Skill;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @NoArgsConstructor

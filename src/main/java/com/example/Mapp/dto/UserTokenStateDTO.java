@@ -1,4 +1,4 @@
-package com.example.Mapp.DTO;
+package com.example.Mapp.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

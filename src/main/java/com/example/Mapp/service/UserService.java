@@ -1,7 +1,7 @@
 package com.example.Mapp.service;
 
 import java.util.List;
-import com.example.Mapp.DTO.UserDTO;
+import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Role;

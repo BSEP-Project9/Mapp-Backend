@@ -1,8 +1,8 @@
 package com.example.Mapp.controller;
 
-import com.example.Mapp.DTO.LoginDTO;
-import com.example.Mapp.DTO.UserDTO;
-import com.example.Mapp.DTO.UserTokenStateDTO;
+import com.example.Mapp.dto.LoginDTO;
+import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.dto.UserTokenStateDTO;
 import com.example.Mapp.config.JwtService;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.UserService;
