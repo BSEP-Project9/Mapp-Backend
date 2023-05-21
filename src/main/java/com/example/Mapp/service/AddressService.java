@@ -1,6 +1,6 @@
 package com.example.Mapp.service;
 
-import com.example.Mapp.DTO.AddressDTO;
+import com.example.Mapp.dto.AddressDTO;
 import com.example.Mapp.mapper.AddressMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.repository.AddressRepository;

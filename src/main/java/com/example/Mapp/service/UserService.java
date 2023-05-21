@@ -1,18 +1,21 @@
 package com.example.Mapp.service;
 
 import java.util.List;
-import com.example.Mapp.DTO.UserDTO;
+import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Role;
 import com.example.Mapp.model.User;
 import com.example.Mapp.repository.RoleRepository;
 import com.example.Mapp.repository.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -63,5 +66,15 @@ public class UserService {
         credentials.setRole(role);
         credentials.setAddress(address);
         return credentials;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findOneByEmail(username);
+        if(user == null){
+            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", username));
+        }else {
+            return user;
+        }
     }
 }
