@@ -1,6 +1,8 @@
 package com.example.Mapp.service;
 
 import java.util.List;
+
+import com.example.Mapp.dto.LoggedUserDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
@@ -76,5 +78,16 @@ public class UserService implements UserDetailsService {
         }else {
             return user;
         }
+    }
+
+    public LoggedUserDTO getByEmail(String email){
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isPresent()){
+            LoggedUserDTO dto = new LoggedUserDTO();
+            dto.setId(user.get().getId().toString());
+            dto.setRole(user.get().getRole().getName());
+            return dto;
+        }
+        return null;
     }
 }
