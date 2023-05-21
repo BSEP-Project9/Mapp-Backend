@@ -48,27 +48,8 @@ public class UserController {
         return userService.getById(id);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity register(@RequestBody UserDTO userDTO){
-        User user = userService.register(userDTO);
-        if(user == null){
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity(HttpStatus.CREATED);
-    }
-
-    @PostMapping("/login")
-    public UserTokenStateDTO authentication(@RequestBody LoginDTO loginDTO){
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginDTO.getEmail(),
-                        loginDTO.getPassword()
-                )
-        );
-        User newUser = (User) auth.getPrincipal();
-        var jwtToken = jwtService.generateToken(newUser);
-        int expiresIn = jwtService.getExpiredIn();
-
-        return new UserTokenStateDTO(jwtToken, jwtToken,(long) expiresIn, newUser.getRole().getName(), newUser.getId().toString());
+    @GetMapping("/{email}")
+    public UserDTO getByEmail(@PathVariable("email") String email){
+        return null;
     }
 }

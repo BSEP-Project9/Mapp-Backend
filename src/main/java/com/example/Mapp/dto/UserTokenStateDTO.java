@@ -8,7 +8,4 @@ import lombok.Data;
 public class UserTokenStateDTO {
     private String accessToken;
     private String refreshToken;
-    private Long expiresIn;
-    private String role;
-    private String userId;
 }
