@@ -5,9 +5,12 @@ import com.example.Mapp.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.Mapp.DTO.UserDTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -15,7 +18,6 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
-
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -25,7 +27,6 @@ public class UserController {
     public List<User> getAll() {
         return userService.getAll();
     }
-
 
     @PutMapping("/{id}")
     public User edit(@RequestBody User user, @PathVariable("id") Long id) {
@@ -37,8 +38,12 @@ public class UserController {
         return userService.getById(id);
     }
 
-//    @GetMapping("/project/{id}/swe") //na projektu moze biti i pm, zato ovdje kazem swe
-//    public List<User> getAllSweByProject(@PathVariable("id") Long id) {
-//        return userService.getAllByProjectAndRole(id, "SWE");
-//    }
+    @PostMapping
+    public ResponseEntity register(@RequestBody UserDTO userDTO){
+        User user = userService.register(userDTO);
+        if(user == null){
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity(HttpStatus.CREATED);
+    }
 }
