@@ -1,6 +1,6 @@
 package com.example.Mapp.mapper;
 
-import com.example.Mapp.DTO.UserDTO;
+import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.User;
 import org.springframework.stereotype.Component;
 

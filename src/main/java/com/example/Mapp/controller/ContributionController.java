@@ -2,13 +2,15 @@ package com.example.Mapp.controller;
 
 
 import com.example.Mapp.dto.ContributionToDto;
+import com.example.Mapp.dto.DeleteContributionDto;
+import com.example.Mapp.dto.ProjectContributionDto;
 import com.example.Mapp.model.Contribution;
+import com.example.Mapp.model.Project;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.ContributionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -45,5 +47,22 @@ public class ContributionController {
         return ResponseEntity.ok().build();
     }
 
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/worker/project/{id}")
+    public List<User> getAllWorkerByProject(@PathVariable("id") Long projectId) {
+        return contributionService.getAllWorkerByProject(projectId);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/project/worker/{id}")
+    public List<ProjectContributionDto> getAllProjectByWorker(@PathVariable("id") Long workerId) {
+        return contributionService.getAllProjectByWorker(workerId);
+    }
+
+    @DeleteMapping("/workers-from-project")
+    public ResponseEntity<Void> deleteEmployeesFromProject(@RequestBody DeleteContributionDto deleteContributionDto) {
+        contributionService.deleteEmployeesFromProject(deleteContributionDto);
+        return ResponseEntity.ok().build();
+    }
 
 }

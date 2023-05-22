@@ -1,11 +1,11 @@
 package com.example.Mapp.controller;
 
+import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.example.Mapp.DTO.UserDTO;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
