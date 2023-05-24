@@ -18,8 +18,10 @@ import java.util.List;
 public class UserDTO {
 
     private String email;
-
+    //@Min(4)
     private String password;
+    //@Min(4)
+    private String rPassword;
 
     private String name;
 

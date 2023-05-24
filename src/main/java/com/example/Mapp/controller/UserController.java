@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "http://localhost:4200")
 public class UserController {
 
     private final UserService userService;
@@ -21,8 +22,9 @@ public class UserController {
         this.userService = userService;
     }
     @PostMapping
-    public ResponseEntity register(@RequestBody UserDTO userDTO){
+    public ResponseEntity<String> register(@RequestBody UserDTO userDTO){
         User user = userService.register(userDTO);
+        System.out.println(user);
         if(user == null){
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }

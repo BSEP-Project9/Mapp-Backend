@@ -30,13 +30,14 @@ public class UserService {
     }
 
     public User register(UserDTO userDTO){
-        Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
-        if(!user.isPresent()){
-            User credentials = create(userDTO);
-            userRepository.save(credentials);
-            return credentials;
-        }
-        return null;
+            Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
+            if(!user.isPresent()){
+                User credentials = create(userDTO);
+                userRepository.save(credentials);
+                System.out.println("EvoME I OVde");
+                return credentials;
+            } else return null;
+
     }
 
     private User create(UserDTO userDTO){
