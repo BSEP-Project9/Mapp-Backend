@@ -23,10 +23,11 @@ public class UserController {
     }
     @PostMapping
     public ResponseEntity<String> register(@RequestBody UserDTO userDTO){
+        System.out.println(userDTO);
+        System.out.println("TU SAM SAD!");
         User user = userService.register(userDTO);
-        System.out.println(user);
         if(user == null){
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body("Error within registration");
         }
         return new ResponseEntity(HttpStatus.CREATED);
     }

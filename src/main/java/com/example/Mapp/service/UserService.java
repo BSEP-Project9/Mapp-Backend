@@ -1,6 +1,7 @@
 package com.example.Mapp.service;
 
 import com.example.Mapp.DTO.UserDTO;
+import com.example.Mapp.exceptions.RegistrationException;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Role;
@@ -8,6 +9,8 @@ import com.example.Mapp.model.User;
 import com.example.Mapp.repository.RoleRepository;
 import com.example.Mapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.regex.Pattern;
 
 import javax.script.ScriptEngine;
 import java.util.ArrayList;
@@ -21,6 +24,8 @@ public class UserService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final AddressService addressService;
+    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{4,}$";
+    private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
 
     public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository, AddressService addressService) {
         this.userRepository = userRepository;
@@ -29,18 +34,31 @@ public class UserService {
         this.addressService = addressService;
     }
 
-    public User register(UserDTO userDTO){
-            Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
-            if(!user.isPresent()){
-                User credentials = create(userDTO);
-                userRepository.save(credentials);
-                System.out.println("EvoME I OVde");
-                return credentials;
-            } else return null;
+    public User register(UserDTO userDTO) {
+        try {
+            if (!userDTO.getConfirmPassword().equals(userDTO.getPassword())) {
+                throw new RegistrationException("Passwords Do Not Match!");
+            }
+        } catch (RegistrationException e) {
+            throw e;
+        }
 
+        try {
+            if (!isPasswordValid(userDTO.getPassword())) {
+                throw new RegistrationException("Password does not meet the requirements!");
+            }
+        } catch (RegistrationException e) {
+            throw e;
+        }
+        Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
+        if (!user.isPresent()) {
+            User credentials = create(userDTO);
+            userRepository.save(credentials);
+            return credentials;
+        } else return null;
     }
 
-    private User create(UserDTO userDTO){
+    private User create(UserDTO userDTO) {
         User credentials = userMapper.DtoToEntity(userDTO);
         Role role = roleRepository.findByName(userDTO.getRole());
         Address address = addressService.create(userDTO.getAddress());
@@ -49,11 +67,11 @@ public class UserService {
         return credentials;
     }
 
-    public List<UserDTO> getAllInactiveUsers(){
+    public List<UserDTO> getAllInactiveUsers() {
         List<User> users = userRepository.findAll();
         List<User> usersCopy = new ArrayList<>();
         users.forEach(user -> {
-            if(!user.isActivated()){
+            if (!user.isActivated()) {
                 usersCopy.add(user);
             }
         });
@@ -64,4 +82,7 @@ public class UserService {
         return usersFinal;
     }
 
+    public boolean isPasswordValid(String password) {
+        return pattern.matcher(password).matches();
+    }
 }
