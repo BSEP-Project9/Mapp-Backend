@@ -1,9 +1,12 @@
 package com.example.Mapp.controller;
 
 
+import com.example.Mapp.dto.ContributionToDto;
 import com.example.Mapp.model.Contribution;
+import com.example.Mapp.model.User;
 import com.example.Mapp.service.ContributionService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,5 +38,12 @@ public class ContributionController {
     public List<Contribution> getAllByWorker(@PathVariable("id") Long workerId) {
         return contributionService.getAllByWorker(workerId);
     }
+
+    @PostMapping("/workers-to-project")
+    public ResponseEntity<Void> addEmployeesToProject(@RequestBody ContributionToDto contributionDto) {
+        contributionService.addEmployeesToProject(contributionDto);
+        return ResponseEntity.ok().build();
+    }
+
 
 }

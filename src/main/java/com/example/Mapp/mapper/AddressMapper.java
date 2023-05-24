@@ -1,6 +1,6 @@
 package com.example.Mapp.mapper;
 
-import com.example.Mapp.DTO.AddressDTO;
+import com.example.Mapp.dto.AddressDTO;
 import com.example.Mapp.model.Address;
 import org.springframework.stereotype.Component;
 

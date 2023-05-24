@@ -1,5 +1,6 @@
-package com.example.Mapp.DTO;
+package com.example.Mapp.dto;
 
+import com.example.Mapp.dto.AddressDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

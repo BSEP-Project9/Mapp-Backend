@@ -1,8 +1,8 @@
 -- ROLE
-INSERT INTO role(name, seniority) VALUES('ADMIN', 'NONE');
-INSERT INTO role(name, seniority) VALUES('SWE', 'JUNIOR');
-INSERT INTO role(name, seniority) VALUES('HR', 'NONE');
-INSERT INTO role(name, seniority) VALUES('PM', 'NONE');
+INSERT INTO role(name, seniority) VALUES('ROLE_ADMIN', 'NONE');
+INSERT INTO role(name, seniority) VALUES('ROLE_SWE', 'JUNIOR');
+INSERT INTO role(name, seniority) VALUES('ROLE_HR', 'NONE');
+INSERT INTO role(name, seniority) VALUES('ROLE_PM', 'NONE');
 
 -- ADDRESS
 INSERT INTO address(country, city, street_name, street_number) VALUES('Serbia', 'Belgrade', 'Kosovska', '27');
@@ -12,7 +12,7 @@ INSERT INTO address(country, city, street_name, street_number) VALUES('Serbia', 
 
 -- USER
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
-VALUES('admin@gmail.com', '123', 'Admin', 'Admin', '0635483452', false, 1, 1, '2023-05-30');
+VALUES('admin@gmail.com', '$2a$10$AmSd1Bo28xit.Cq947HO0exPCnL2VUZ5eTAwgkMP7MfDl6sscz60O', 'Admin', 'Admin', '0635483452', false, 1, 1, '2023-05-30');
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
 VALUES('stefan@gmail.com', '123', 'Stefan', 'Pekez', '0665483452', false, 2, 2, '2023-03-20');
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
