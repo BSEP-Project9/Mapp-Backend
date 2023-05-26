@@ -76,7 +76,7 @@ public class AuthController {
     public UserTokenStateDTO emailAuthentication(@RequestBody EmailLoginDTO email) throws NoSuchAlgorithmException, InvalidKeyException {
          User user = userService.getUserByEmail(email);
           if(user != null){
-            emailService.sendActivationEmail(user);
+            emailService.sendConfirmationEmail(user);
         }
         return null;
     }
@@ -86,8 +86,6 @@ public class AuthController {
         if(!token.isEmpty() && !email.isEmpty()){
             User user = emailService.confirmLogin(token, email);
                 if(user != null){
-                    System.out.println("HAIIIII");
-                    System.out.println("Ovo je iz zaglavlja: " + token);
                     Map<String, Object> extraClaims = new HashMap<>();
                     extraClaims.put("role",user.getRole().getName());
                     var jwtToken = jwtService.generateToken(extraClaims, user);
@@ -98,18 +96,21 @@ public class AuthController {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/proba")
-    public ResponseEntity proba() throws NoSuchAlgorithmException, InvalidKeyException {
-        String token = UUID.randomUUID().toString();
-        System.out.println("Random vrednost: "+ token);
-        String secretKey = "tajni_kljuc";
-        String potpisanToken = hmacUtil.signToken(token, secretKey);
-        System.out.println("Potpisan Hmacpm: "+ potpisanToken);
-        String encodedToken = Base64.getUrlEncoder().encodeToString(potpisanToken.getBytes(StandardCharsets.UTF_8));
-        System.out.println("Poslato u zaglavlju: "+ encodedToken);
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(encodedToken);
-        String decodedToken = new String(decodedBytes, StandardCharsets.UTF_8);
-        System.out.println("Trebalo bi da bude original:  " +decodedToken);
+    @GetMapping("/activate")
+    public ResponseEntity activateAccount(@RequestParam String token, @RequestParam String email) throws NoSuchAlgorithmException, InvalidKeyException {
+        System.out.println("token: " + token);
+        System.out.println("haiii: " + email);
+        if(!token.isEmpty() && !email.isEmpty()){
+            emailService.activateAccount(token, email);
+        }
+
         return null;
+    }
+
+    @PostMapping("/approve-account")
+    public ResponseEntity approveUserAccount() throws NoSuchAlgorithmException, InvalidKeyException {
+        User user = userService.getOneByEmail("jelena@gmail.com");
+        emailService.sendActivationEmail(user);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
