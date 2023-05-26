@@ -9,5 +9,5 @@ public interface EmailConfirmationTokenRepository extends JpaRepository<EmailCon
 
     Optional<EmailConfirmationToken> findByToken(String token);
 
-    EmailConfirmationToken findByUserId(Long userId);
+    EmailConfirmationToken findByUserIdAndType(Long userId, String type);
 }

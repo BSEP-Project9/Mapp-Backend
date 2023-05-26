@@ -29,13 +29,18 @@ public class EmailConfirmationToken {
     @Column
     private Long userId;
 
+    @Column
+    private String type;
+
     public EmailConfirmationToken(String token,
                              LocalDateTime issuedAt,
                              LocalDateTime confirmedAt,
-                             Long userId) {
+                             Long userId,
+                                  String type) {
         this.token = token;
         this.issuedAt = issuedAt;
         this.expiredAt = confirmedAt;
         this.userId = userId;
+        this.type = type;
     }
 }

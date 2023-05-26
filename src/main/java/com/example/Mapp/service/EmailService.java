@@ -45,7 +45,8 @@ public class EmailService{
                  token,
                  LocalDateTime.now(),
                  LocalDateTime.now().plusMinutes(10),
-                 user.getId()
+                 user.getId(),
+                 "CONFIRM_LOGIN"
          );
          emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
 
@@ -77,7 +78,7 @@ public class EmailService{
             String decodedToken = decodeRequestToken(token);
             User user = userRepository.findOneByEmail(email);
             if(user != null){ //proveravamo da li uopste postoji korisnik s datim email-om
-                EmailConfirmationToken emailConfirmationToken = emailConfirmationTokenService.findByUserId(user.getId());
+                EmailConfirmationToken emailConfirmationToken = emailConfirmationTokenService.findByUserIdAndType(user.getId(), "CONFIRM_LOGIN");
                 if(hmacUtil.verifySignature(emailConfirmationToken.getToken(), decodedToken)){
                     System.out.println("Token je ispravano potpisan");
                     if(emailConfirmationToken.getExpiredAt().isAfter(LocalDateTime.now())){
@@ -105,7 +106,8 @@ public class EmailService{
                     token,
                     LocalDateTime.now(), //datum kreiranja tokena
                     LocalDateTime.now().plusMinutes(10), //datum isteka vazenja tokena {DODATI DRUGU VREDNOST ZA TRAJANJE}
-                    user.getId() // id korisnika kome saljemo email, da bi mogli proveriti da li je na vreme usao na link
+                    user.getId(), // id korisnika kome saljemo email, da bi mogli proveriti da li je na vreme usao na link,
+                    "ACTIVATE_ACCOUNT"
             );
             emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);//cuvamo u bazi
 
@@ -150,7 +152,7 @@ public class EmailService{
 
         private boolean checkIsTokenValid(String decodedToken, User user) throws NoSuchAlgorithmException, InvalidKeyException {
             if(user != null){ //proveravamo da li uopste postoji korisnik s datim email-om
-                EmailConfirmationToken emailConfirmationToken = emailConfirmationTokenService.findByUserId(user.getId());
+                EmailConfirmationToken emailConfirmationToken = emailConfirmationTokenService.findByUserIdAndType(user.getId(), "ACTIVATE_ACCOUNT");
                 if(hmacUtil.verifySignature(emailConfirmationToken.getToken(), decodedToken)){
                     System.out.println("Token je ispravano potpisan");
                     if(emailConfirmationToken.getExpiredAt().isAfter(LocalDateTime.now())){

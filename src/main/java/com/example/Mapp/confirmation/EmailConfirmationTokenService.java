@@ -13,7 +13,7 @@ public class EmailConfirmationTokenService {
         emailConfirmationTokenRepository.save(token);
     }
 
-    public EmailConfirmationToken findByUserId(Long id) {
-        return emailConfirmationTokenRepository.findByUserId(id);
+    public EmailConfirmationToken findByUserIdAndType(Long id, String type) {
+        return emailConfirmationTokenRepository.findByUserIdAndType(id, type);
     }
 }
