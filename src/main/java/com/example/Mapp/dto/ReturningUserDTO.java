@@ -10,15 +10,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReturningUserDTO {
 
+    private Long id;
+
     private String email;
 
     private String name;
 
     private String surname;
 
-    private String phoneNumber;
+    //private String phoneNumber;
 
-    private String role;
+    //private String role;
 
-    private AddressDTO address;
+    //private AddressDTO address;
+
+    private boolean isActivated;
 }

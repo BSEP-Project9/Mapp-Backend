@@ -1,5 +1,6 @@
 package com.example.Mapp.service;
 
+import com.example.Mapp.dto.ReturningUserDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.exceptions.RegistrationException;
 
@@ -98,7 +99,7 @@ public class UserService implements UserDetailsService {
         return credentials;
     }
 
-    public List<UserDTO> getAllInactiveUsers() {
+    public List<ReturningUserDTO> getAllInactiveUsers() {
         List<User> users = userRepository.findAll();
         List<User> usersCopy = new ArrayList<>();
         users.forEach(user -> {
@@ -106,9 +107,9 @@ public class UserService implements UserDetailsService {
                 usersCopy.add(user);
             }
         });
-        List<UserDTO> usersFinal = new ArrayList<>();
+        List<ReturningUserDTO> usersFinal = new ArrayList<>();
         usersCopy.forEach(user -> {
-            usersFinal.add(userMapper.EntityToDto(user));
+            usersFinal.add(userMapper.EntityToReturningDTO(user));
         });
         return usersFinal;
     }
