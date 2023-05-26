@@ -1,5 +1,6 @@
 package com.example.Mapp.mapper;
 
+import com.example.Mapp.dto.AddressDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.enums.Seniority;
 import com.example.Mapp.model.Role;
@@ -20,17 +21,22 @@ public class UserMapper {
     @Autowired
 
     private RoleRepository roleRepository;
+    @Autowired
+    private AddressMapper addressMapper;
 
     private PasswordEncoder passwordEncoder;
 
 
-    public UserDTO EntityToDto(User model) {
+    public UserDTO EntityToDto(User model){
         UserDTO dto = new UserDTO();
         dto.setEmail(model.getEmail());
         dto.setPassword(model.getPassword());
         dto.setName(model.getName());
         dto.setSurname(model.getSurname());
         dto.setPhoneNumber(model.getPhoneNumber());
+        AddressDTO addressDTO = addressMapper.EntityToDto(model.getAddress());
+        dto.setAddress(addressDTO);
+        dto.setRole(model.getRole().getName());
         return dto;
     }
 
