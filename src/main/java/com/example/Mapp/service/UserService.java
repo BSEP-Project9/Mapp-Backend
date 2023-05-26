@@ -4,10 +4,8 @@ import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.exceptions.RegistrationException;
 
 import java.util.List;
-
-import com.example.Mapp.dto.AddressDTO;
+import com.example.Mapp.dto.EmailLoginDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
-import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Role;
@@ -20,10 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
-
-import javax.script.ScriptEngine;
 import java.util.ArrayList;
-import java.util.List;
 
 import java.util.Optional;
 
@@ -143,6 +138,22 @@ public class UserService implements UserDetailsService {
             dto.setId(user.get().getId().toString());
             dto.setRole(user.get().getRole().getName());
             return dto;
+        }
+        return null;
+    }
+
+    public User getUserByEmail(EmailLoginDTO email){
+        Optional<User> user = userRepository.findByEmail(email.getEmail());
+        if(user.isPresent()){
+            return user.get();
+        }
+        return null;
+    }
+
+    public User getOneByEmail(String email){
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isPresent()){
+            return user.get();
         }
         return null;
     }
