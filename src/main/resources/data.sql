@@ -24,6 +24,7 @@ VALUES('ana@gmail.com', '$2a$10$AmSd1Bo28xit.Cq947HO0exPCnL2VUZ5eTAwgkMP7MfDl6ss
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
 VALUES('sara@gmail.com', '$2a$10$AmSd1Bo28xit.Cq947HO0exPCnL2VUZ5eTAwgkMP7MfDl6sscz60O', 'Sara', 'saric', '0665483452', false, 4, 4, '2000-07-08');
 
+
 -- SKILL
 INSERT INTO skill(name, rating) VALUES('Git', 2);
 INSERT INTO skill(name, rating) VALUES('Java', 5);

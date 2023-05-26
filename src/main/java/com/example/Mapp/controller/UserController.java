@@ -6,11 +6,15 @@ import com.example.Mapp.config.JwtService;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 
 @RestController
@@ -28,9 +32,15 @@ public class UserController {
         this.authenticationManager = authenticationManager;
     }
 
-    @GetMapping
-    public List<User> getAll() {
-        return userService.getAll();
+    @PostMapping
+    public ResponseEntity<String> register(@RequestBody UserDTO userDTO) {
+        System.out.println(userDTO);
+        System.out.println("TU SAM SAD!");
+        User user = userService.register(userDTO);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("Error within registration");
+        }
+        return new ResponseEntity(HttpStatus.CREATED);
     }
 
     @PutMapping()
@@ -48,4 +58,11 @@ public class UserController {
         LoggedUserDTO loggedUserDTO = userService.getByEmail(email);
         return loggedUserDTO;
     }
+
+    @GetMapping
+    public ResponseEntity getAllInactiveUsers(){
+        List<UserDTO> users = userService.getAllInactiveUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
 }
