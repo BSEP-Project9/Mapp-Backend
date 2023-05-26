@@ -1,5 +1,6 @@
 package com.example.Mapp.mapper;
 
+import com.example.Mapp.dto.AddressDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,9 @@ public class UserMapper {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AddressMapper addressMapper;
+
     public UserDTO EntityToDto(User model){
         UserDTO dto = new UserDTO();
         dto.setEmail(model.getEmail());
@@ -19,6 +23,9 @@ public class UserMapper {
         dto.setName(model.getName());
         dto.setSurname(model.getSurname());
         dto.setPhoneNumber(model.getPhoneNumber());
+        AddressDTO addressDTO = addressMapper.EntityToDto(model.getAddress());
+        dto.setAddress(addressDTO);
+        dto.setRole(model.getRole().getName());
         return dto;
     }
 

@@ -1,6 +1,8 @@
 package com.example.Mapp.service;
 
 import java.util.List;
+
+import com.example.Mapp.dto.AddressDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.mapper.UserMapper;
@@ -35,19 +37,28 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public User edit(User user, Long id){
-        Optional<User> OldCenter = userRepository.findById(id);
-        if(OldCenter.isEmpty()) {
+    public User edit(UserDTO user){
+        Optional<User> oldUserOptional = userRepository.findByEmail(user.getEmail());
+        if(oldUserOptional.isEmpty()) {
             return null;
         }
-        return userRepository.save(user);
+        User oldUser = oldUserOptional.get();
+        Address newAddress = addressService.getById(oldUser.getAddress().getId());
+        newAddress.setCity(user.getAddress().getCity());
+        oldUser.setAddress(newAddress);
+        oldUser.setName(user.getName());
+        oldUser.setPhoneNumber(user.getPhoneNumber());
+        oldUser.setSurname(user.getSurname());
+        oldUser.setEmail(user.getEmail());
+        return userRepository.save(oldUser);
     }
-    public User getById(Long id) {
+    public UserDTO getById(Long id) {
         Optional<User> user = userRepository.findById(id);
         if(user.isEmpty()) {
             return null;
         }
-        return user.get();
+        UserDTO userDTO = userMapper.EntityToDto(user.get());
+        return userDTO;
     }
 
     public User register(UserDTO userDTO){

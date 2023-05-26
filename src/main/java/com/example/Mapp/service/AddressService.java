@@ -6,6 +6,8 @@ import com.example.Mapp.model.Address;
 import com.example.Mapp.repository.AddressRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AddressService {
 
@@ -21,6 +23,11 @@ public class AddressService {
         Address address = addressMapper.DtoToEntity(addressDTO);
         addressRepository.save(address);
         return address;
+    }
+
+    public Address getById(Long id) {
+        Optional<Address> addressOptional = addressRepository.findById(id);
+        return addressOptional.get();
     }
 
 }

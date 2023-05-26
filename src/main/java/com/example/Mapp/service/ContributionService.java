@@ -1,7 +1,6 @@
 package com.example.Mapp.service;
 
 import com.example.Mapp.dto.ContributionToDto;
-import com.example.Mapp.dto.DeleteContributionDto;
 import com.example.Mapp.dto.ProjectContributionDto;
 import com.example.Mapp.model.Contribution;
 import com.example.Mapp.model.Project;
@@ -74,10 +73,10 @@ public class ContributionService {
         return projectContributionDtos;
     }
 
-    public void deleteEmployeesFromProject(DeleteContributionDto deleteContributionDto) {
-        List<Contribution> contributions = contributionRepository.findByProjectId(deleteContributionDto.getProjectId());
+    public void deleteEmployeesFromProject(Long workerId, Long projectId) {
+        List<Contribution> contributions = contributionRepository.findByProjectId(projectId);
         for (Contribution c: contributions) {
-            if (c.getWorker().getId().equals(deleteContributionDto.getWorkerId())) {
+            if (c.getWorker().getId().equals(workerId)) {
                 if (c.getJobEndTime() != null) return;
                 c.setJobEndTime(LocalDate.now());
                 contributionRepository.save(c);

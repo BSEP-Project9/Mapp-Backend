@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/contributions")
+@CrossOrigin(origins = "http://localhost:4200")
 public class ContributionController {
 
     private final ContributionService contributionService;
@@ -59,9 +60,9 @@ public class ContributionController {
         return contributionService.getAllProjectByWorker(workerId);
     }
 
-    @DeleteMapping("/workers-from-project")
-    public ResponseEntity<Void> deleteEmployeesFromProject(@RequestBody DeleteContributionDto deleteContributionDto) {
-        contributionService.deleteEmployeesFromProject(deleteContributionDto);
+    @DeleteMapping("/workers-from-project/{workerId}/{projectId}")
+    public ResponseEntity<Void> deleteEmployeesFromProject(@PathVariable("workerId") Long workerId, @PathVariable("projectId") Long projectId) {
+        contributionService.deleteEmployeesFromProject(workerId, projectId);
         return ResponseEntity.ok().build();
     }
 
