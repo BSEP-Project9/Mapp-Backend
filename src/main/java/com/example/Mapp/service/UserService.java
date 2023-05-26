@@ -1,10 +1,11 @@
 package com.example.Mapp.service;
 
-import java.util.List;
+import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.exceptions.RegistrationException;
 
+import java.util.List;
 import com.example.Mapp.dto.EmailLoginDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
-import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Role;
@@ -15,6 +16,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.regex.Pattern;
+import java.util.ArrayList;
+
 import java.util.Optional;
 
 @Service
@@ -24,6 +29,8 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final AddressService addressService;
+    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{4,}$";
+    private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
 
 
     public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository, AddressService addressService) {
@@ -33,36 +40,61 @@ public class UserService implements UserDetailsService {
         this.addressService = addressService;
     }
 
+
+    public User register(UserDTO userDTO) {
+        try {
+            if (!userDTO.getConfirmPassword().equals(userDTO.getPassword())) {
+                throw new RegistrationException("Passwords Do Not Match!");
+            }
+        } catch (RegistrationException e) {
+            throw e;
+        }
+
+        try {
+            if (!isPasswordValid(userDTO.getPassword())) {
+                throw new RegistrationException("Password does not meet the requirements!");
+            }
+        } catch (RegistrationException e) {
+            throw e;
+        }
+        Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
+        if (!user.isPresent()) {
+            User credentials = create(userDTO);
+            userRepository.save(credentials);
+            return credentials;
+        } else return null;
+    }
+
     public List<User> getAll() {
         return userRepository.findAll();
     }
 
-    public User edit(User user, Long id){
-        Optional<User> OldCenter = userRepository.findById(id);
-        if(OldCenter.isEmpty()) {
+    public User edit(UserDTO user){
+        Optional<User> oldUserOptional = userRepository.findByEmail(user.getEmail());
+        if(oldUserOptional.isEmpty()) {
             return null;
         }
-        return userRepository.save(user);
+        User oldUser = oldUserOptional.get();
+        Address newAddress = addressService.getById(oldUser.getAddress().getId());
+        newAddress.setCity(user.getAddress().getCity());
+        oldUser.setAddress(newAddress);
+        oldUser.setName(user.getName());
+        oldUser.setPhoneNumber(user.getPhoneNumber());
+        oldUser.setSurname(user.getSurname());
+        oldUser.setEmail(user.getEmail());
+        return userRepository.save(oldUser);
     }
-    public User getById(Long id) {
+    public UserDTO getById(Long id) {
         Optional<User> user = userRepository.findById(id);
         if(user.isEmpty()) {
             return null;
         }
-        return user.get();
+        UserDTO userDTO = userMapper.EntityToDto(user.get());
+        return userDTO;
     }
 
-    public User register(UserDTO userDTO){
-        Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
-        if(!user.isPresent()){
-            User credentials = create(userDTO);
-            userRepository.save(credentials);
-            return credentials;
-        }
-        return null;
-    }
 
-    private User create(UserDTO userDTO){
+    private User create(UserDTO userDTO) {
         User credentials = userMapper.DtoToEntity(userDTO);
         Role role = roleRepository.findByName(userDTO.getRole());
         Address address = addressService.create(userDTO.getAddress());
@@ -71,6 +103,24 @@ public class UserService implements UserDetailsService {
         return credentials;
     }
 
+    public List<UserDTO> getAllInactiveUsers() {
+        List<User> users = userRepository.findAll();
+        List<User> usersCopy = new ArrayList<>();
+        users.forEach(user -> {
+            if (!user.isActivated()) {
+                usersCopy.add(user);
+            }
+        });
+        List<UserDTO> usersFinal = new ArrayList<>();
+        usersCopy.forEach(user -> {
+            usersFinal.add(userMapper.EntityToDto(user));
+        });
+        return usersFinal;
+    }
+
+    public boolean isPasswordValid(String password) {
+        return pattern.matcher(password).matches();
+    }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findOneByEmail(username);

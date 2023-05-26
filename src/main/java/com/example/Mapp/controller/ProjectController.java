@@ -3,7 +3,6 @@ package com.example.Mapp.controller;
 import com.example.Mapp.model.Project;
 import com.example.Mapp.service.ProjectService;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
