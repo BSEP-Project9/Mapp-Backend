@@ -5,9 +5,8 @@ import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.exceptions.RegistrationException;
 
 import java.util.List;
-
+import com.example.Mapp.dto.EmailLoginDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
-import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Role;
@@ -20,10 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
-
-import javax.script.ScriptEngine;
 import java.util.ArrayList;
-import java.util.List;
 
 import java.util.Optional;
 
@@ -74,19 +70,28 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public User edit(User user, Long id){
-        Optional<User> OldCenter = userRepository.findById(id);
-        if(OldCenter.isEmpty()) {
+    public User edit(UserDTO user){
+        Optional<User> oldUserOptional = userRepository.findByEmail(user.getEmail());
+        if(oldUserOptional.isEmpty()) {
             return null;
         }
-        return userRepository.save(user);
+        User oldUser = oldUserOptional.get();
+        Address newAddress = addressService.getById(oldUser.getAddress().getId());
+        newAddress.setCity(user.getAddress().getCity());
+        oldUser.setAddress(newAddress);
+        oldUser.setName(user.getName());
+        oldUser.setPhoneNumber(user.getPhoneNumber());
+        oldUser.setSurname(user.getSurname());
+        oldUser.setEmail(user.getEmail());
+        return userRepository.save(oldUser);
     }
-    public User getById(Long id) {
+    public UserDTO getById(Long id) {
         Optional<User> user = userRepository.findById(id);
         if(user.isEmpty()) {
             return null;
         }
-        return user.get();
+        UserDTO userDTO = userMapper.EntityToDto(user.get());
+        return userDTO;
     }
 
 
@@ -134,6 +139,22 @@ public class UserService implements UserDetailsService {
             dto.setId(user.get().getId().toString());
             dto.setRole(user.get().getRole().getName());
             return dto;
+        }
+        return null;
+    }
+
+    public User getUserByEmail(EmailLoginDTO email){
+        Optional<User> user = userRepository.findByEmail(email.getEmail());
+        if(user.isPresent()){
+            return user.get();
+        }
+        return null;
+    }
+
+    public User getOneByEmail(String email){
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isPresent()){
+            return user.get();
         }
         return null;
     }

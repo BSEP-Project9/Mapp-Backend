@@ -1,10 +1,11 @@
 package com.example.Mapp.mapper;
-
 import com.example.Mapp.dto.ReturningUserDTO;
+import com.example.Mapp.dto.AddressDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.Role;
 import com.example.Mapp.model.User;
 import com.example.Mapp.repository.RoleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -15,18 +16,26 @@ public class UserMapper {
 
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AddressMapper addressMapper;
+
+
+
     public UserMapper(RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public UserDTO EntityToDto(User model) {
+    public UserDTO EntityToDto(User model){
         UserDTO dto = new UserDTO();
         dto.setEmail(model.getEmail());
         dto.setPassword(model.getPassword());
         dto.setName(model.getName());
         dto.setSurname(model.getSurname());
         dto.setPhoneNumber(model.getPhoneNumber());
+        AddressDTO addressDTO = addressMapper.EntityToDto(model.getAddress());
+        dto.setAddress(addressDTO);
+        dto.setRole(model.getRole().getName());
         return dto;
     }
 
