@@ -36,6 +36,7 @@ public class UserMapper {
         AddressDTO addressDTO = addressMapper.EntityToDto(model.getAddress());
         dto.setAddress(addressDTO);
         dto.setRole(model.getRole().getName());
+        dto.setStatus(model.getStatus());
         return dto;
     }
 
@@ -53,7 +54,7 @@ public class UserMapper {
             System.out.println(role);
             model.setRole(role);
         }
-
+        model.setStatus(dto.getStatus());
         return model;
     }
     public ReturningUserDTO EntityToReturningDTO(User model) {

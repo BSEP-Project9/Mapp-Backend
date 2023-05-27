@@ -1,5 +1,6 @@
 package com.example.Mapp.dto;
 
+import com.example.Mapp.enums.Status;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Contribution;
 import com.example.Mapp.model.Role;
@@ -31,4 +32,6 @@ public class UserDTO {
     private String role;
 
     private AddressDTO address;
+
+    private Status status;
 }

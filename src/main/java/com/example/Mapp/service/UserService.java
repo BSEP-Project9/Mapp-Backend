@@ -2,8 +2,11 @@ package com.example.Mapp.service;
 
 import com.example.Mapp.dto.ReturningUserDTO;
 import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.enums.Status;
 import com.example.Mapp.exceptions.RegistrationException;
 
+import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 import com.example.Mapp.dto.EmailLoginDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
@@ -58,12 +61,23 @@ public class UserService implements UserDetailsService {
         } catch (RegistrationException e) {
             throw e;
         }
-        Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
+        Optional<User> user = userRepository.findByEmail(userDTO.getEmail());
         if (!user.isPresent()) {
             User credentials = create(userDTO);
             userRepository.save(credentials);
             return credentials;
-        } else return null;
+        } else {
+            Duration duration = Duration.between(user.get().getDeclineDateTime(), LocalDateTime.now());
+            long daysPassed = duration.toDays();
+            long secondsPassed = duration.toSeconds();
+            if(user.get().getStatus() == Status.INACTIVE && secondsPassed >= 25){
+                userRepository.delete(user.get());
+                User credentials = create(userDTO);
+                userRepository.save(credentials);
+                return credentials;
+            }
+        }
+        return null;
     }
 
     public List<User> getAll() {
@@ -101,6 +115,7 @@ public class UserService implements UserDetailsService {
         Address address = addressService.create(userDTO.getAddress());
         credentials.setRole(role);
         credentials.setAddress(address);
+        credentials.setStatus(Status.PENDING);
         return credentials;
     }
 
