@@ -65,4 +65,10 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
+    @GetMapping("/all")
+    public List<User> getAll(){
+       return userService.getAll();
+
+    }
+
 }
