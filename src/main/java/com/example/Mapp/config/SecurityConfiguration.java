@@ -32,7 +32,10 @@ public class SecurityConfiguration {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authenticationProvider(authenticationProvider)
-                .cors().and()
+                .exceptionHandling().authenticationEntryPoint(new AppAuthenticationEntryPoint())
+                .and()
+                .cors()
+                .and()
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

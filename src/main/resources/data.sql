@@ -12,7 +12,7 @@ INSERT INTO address(country, city, street_name, street_number) VALUES('Serbia', 
 
 -- USER
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
-VALUES('admin@gmail.com', '$2a$10$AmSd1Bo28xit.Cq947HO0exPCnL2VUZ5eTAwgkMP7MfDl6sscz60O', 'Admin', 'Admin', '0635483452', false, 1, 1, '2023-05-30');
+VALUES('a', '$2a$10$AmSd1Bo28xit.Cq947HO0exPCnL2VUZ5eTAwgkMP7MfDl6sscz60O', 'Admin', 'Admin', '0635483452', false, 1, 1, '2023-05-30');
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
 VALUES('s', '$2a$10$AmSd1Bo28xit.Cq947HO0exPCnL2VUZ5eTAwgkMP7MfDl6sscz60O', 'Stefan', 'Pekez', '0665483452', true, 2, 2, '2023-03-20');
 INSERT INTO "user"(email, password, name, surname, phone_number, is_activated, role_id, address_id, start_of_employment)
