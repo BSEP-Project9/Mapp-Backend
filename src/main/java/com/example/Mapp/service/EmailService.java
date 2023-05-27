@@ -1,0 +1,169 @@
+package com.example.Mapp.service;
+
+import com.example.Mapp.confirmation.EmailConfirmationToken;
+import com.example.Mapp.confirmation.EmailConfirmationTokenService;
+import com.example.Mapp.confirmation.HmacUtil;
+import com.example.Mapp.model.User;
+import com.example.Mapp.repository.UserRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.UUID;
+
+@Service
+@AllArgsConstructor
+public class EmailService{
+
+     private final JavaMailSender emailSender;
+     private final static Logger LOGGER = LoggerFactory.getLogger(EmailService.class);
+     private final UserRepository userRepository;
+
+     private final EmailConfirmationTokenService emailConfirmationTokenService;
+
+     private final HmacUtil hmacUtil;
+
+     @Async("threadPoolTaskExecutor")
+     public void sendConfirmationEmail(User user) throws NoSuchAlgorithmException, InvalidKeyException {
+
+         //String token = UUID.randomUUID().toString();
+         String token = "db92f272-d030-4c54-8d66-338f0a187c51";
+         System.out.println("OVO JE RANDOM UUID: " + token);
+         EmailConfirmationToken emailConfirmationToken = new EmailConfirmationToken(
+                 token,
+                 LocalDateTime.now(),
+                 LocalDateTime.now().plusMinutes(10),
+                 user.getId(),
+                 "CONFIRM_LOGIN"
+         );
+         emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
+
+         String potpisanToken = hmacUtil.signToken(token);
+         System.out.println("Hmac token: " + potpisanToken);
+         String encodedToken = Base64.getUrlEncoder().encodeToString(potpisanToken.getBytes(StandardCharsets.UTF_8));
+         System.out.println("Zaglavnje: " + encodedToken);
+
+
+         String link = "http://localhost:4200/login-redirect/confirm?token=" + encodedToken +"&email="+user.getEmail();
+         try {
+             MimeMessage mimeMessage = emailSender.createMimeMessage();
+             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "UTF-8");
+             String htmlContent = "<h1>Please verify link</h1>"+" <p>Hello, welcome to your <a href=\""+link+"\"> account <a></p>";
+             messageHelper.setText(htmlContent, true);
+             messageHelper.setTo("praksaproba1@gmail.com");
+             messageHelper.setSubject("New login detected");
+             messageHelper.setFrom("praksaproba1@gmail.com");
+             emailSender.send(mimeMessage);
+
+         }catch (MessagingException e){
+             LOGGER.error("Failed to send email", e);
+             throw new IllegalStateException("Failed to send email");
+         }
+        }
+
+        public User confirmLogin(String token, String email) throws NoSuchAlgorithmException, InvalidKeyException {
+         //TO DO: Handle expiration date exception
+            String decodedToken = decodeRequestToken(token);
+            User user = userRepository.findOneByEmail(email);
+            if(user != null){ //proveravamo da li uopste postoji korisnik s datim email-om
+                EmailConfirmationToken emailConfirmationToken = emailConfirmationTokenService.findByUserIdAndType(user.getId(), "CONFIRM_LOGIN");
+                if(hmacUtil.verifySignature(emailConfirmationToken.getToken(), decodedToken)){
+                    System.out.println("Token je ispravano potpisan");
+                    if(emailConfirmationToken.getExpiredAt().isAfter(LocalDateTime.now())){
+                        System.out.println("Token je vremenski ispravan");
+                        return user;
+                    }
+
+                }
+
+            }
+            return null;
+        }
+
+        private String decodeRequestToken(String token){
+            byte[] decodedBytes = Base64.getUrlDecoder().decode(token);
+            String decodedToken = new String(decodedBytes, StandardCharsets.UTF_8);
+            return decodedToken;
+        }
+
+        @Async("threadPoolTaskExecutor")
+        public void sendActivationEmail(User user) throws NoSuchAlgorithmException, InvalidKeyException {
+
+            String token = UUID.randomUUID().toString(); //Random generisana vrednost tokena
+            EmailConfirmationToken emailConfirmationToken = new EmailConfirmationToken(
+                    token,
+                    LocalDateTime.now(), //datum kreiranja tokena
+                    LocalDateTime.now().plusMinutes(10), //datum isteka vazenja tokena {DODATI DRUGU VREDNOST ZA TRAJANJE}
+                    user.getId(), // id korisnika kome saljemo email, da bi mogli proveriti da li je na vreme usao na link,
+                    "ACTIVATE_ACCOUNT"
+            );
+            emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);//cuvamo u bazi
+
+            String signedToken = hmacUtil.signToken(token); //Primenjujemo HMAC algoritam na nas token
+            String encodedToken = Base64.getUrlEncoder().encodeToString(signedToken.getBytes(StandardCharsets.UTF_8));
+            //Kad se primeni HMAC algoritam, token moze da sadrzi specijalne znake
+            //kao sto su '/' i to moze da napravi problem pri citanju putanja iz zaglavlja, npr ..api/v1/67yugu/jg7tyty, ovde je 67yugu/jg7tyty nas token
+            //da bi izbegli ovakve situacije moramo ga jos jednom enkodovati ovim cudom gore da bi se neutralisali ti zbunjujuci znaci
+
+            String link = "http://localhost:8040/api/auth/activate?token=" + encodedToken +"&email="+user.getEmail();
+            //definisemo link u emailu, to ce biti putanja na beku koju zelimo da pogodimo kad korisnik klikne na link iz mejla
+            //prosledjujemo token radi vremenske provere
+            //prosledjujemo mejl da znamo o kom se coveku radi
+
+            //pisanje mejla
+            try {
+                MimeMessage mimeMessage = emailSender.createMimeMessage(); //ne diraj
+                MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "UTF-8"); //ne diraj
+                String htmlContent = "<h1>Please verify link</h1>"+" <p>Hello, welcome to your <a href=\""+link+"\"> account <a></p>"; //izmeni poruku
+                messageHelper.setText(htmlContent, true); //ne diraj
+                messageHelper.setTo("praksaproba1@gmail.com"); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim
+                messageHelper.setSubject("User register ...."); // naslov, promeni
+                messageHelper.setFrom("praksaproba1@gmail.com"); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim
+                emailSender.send(mimeMessage);
+
+            }catch (MessagingException e){
+                LOGGER.error("Failed to send email", e);
+                throw new IllegalStateException("Failed to send email");
+            }
+
+        }
+
+        public void activateAccount(String token, String email) throws NoSuchAlgorithmException, InvalidKeyException {
+            String decodedToken = decodeRequestToken(token);
+            User user = userRepository.findOneByEmail(email);
+            if(checkIsTokenValid(decodedToken, user)){
+                //....
+            }
+
+
+        }
+
+        private boolean checkIsTokenValid(String decodedToken, User user) throws NoSuchAlgorithmException, InvalidKeyException {
+            if(user != null){ //proveravamo da li uopste postoji korisnik s datim email-om
+                EmailConfirmationToken emailConfirmationToken = emailConfirmationTokenService.findByUserIdAndType(user.getId(), "ACTIVATE_ACCOUNT");
+                if(hmacUtil.verifySignature(emailConfirmationToken.getToken(), decodedToken)){
+                    System.out.println("Token je ispravano potpisan");
+                    if(emailConfirmationToken.getExpiredAt().isAfter(LocalDateTime.now())){
+                        System.out.println("Token je vremenski ispravan");
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
+            }
+            return false;
+        }
+
+}
