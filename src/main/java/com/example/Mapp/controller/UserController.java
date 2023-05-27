@@ -1,18 +1,14 @@
 package com.example.Mapp.controller;
 
+
 import com.example.Mapp.dto.LoggedUserDTO;
 import com.example.Mapp.config.JwtService;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.UserService;
-
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,15 +43,13 @@ public class UserController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
-
-
-    @PutMapping("/{id}")
-    public User edit(@RequestBody User user, @PathVariable("id") Long id) {
-        return userService.edit(user, id);
+    @PutMapping()
+    public User edit(@RequestBody UserDTO user) {
+        return userService.edit(user);
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable("id") Long id) {
+    public UserDTO getById(@PathVariable("id") Long id) {
         return userService.getById(id);
     }
 
@@ -70,6 +64,5 @@ public class UserController {
         List<UserDTO> users = userService.getAllInactiveUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
-
 
 }
