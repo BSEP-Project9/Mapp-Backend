@@ -2,13 +2,11 @@ package com.example.Mapp.controller;
 
 import com.example.Mapp.config.JwtService;
 import com.example.Mapp.confirmation.HmacUtil;
-import com.example.Mapp.dto.EmailLoginDTO;
-import com.example.Mapp.dto.LoginDTO;
-import com.example.Mapp.dto.UserDTO;
-import com.example.Mapp.dto.UserTokenStateDTO;
+import com.example.Mapp.dto.*;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.EmailService;
 import com.example.Mapp.service.UserService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,13 +14,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -82,18 +77,30 @@ public class AuthController {
     }
 
     @GetMapping("/check-email/confirm")
-    public ResponseEntity<Object> checkEmailVerificationToken(@RequestParam String token, @RequestParam String email) throws NoSuchAlgorithmException, InvalidKeyException {
+    public ResponseEntity checkEmailVerificationToken(@RequestParam String token, @RequestParam String email) throws NoSuchAlgorithmException, InvalidKeyException {
         if(!token.isEmpty() && !email.isEmpty()){
             User user = emailService.confirmLogin(token, email);
                 if(user != null){
                     Map<String, Object> extraClaims = new HashMap<>();
                     extraClaims.put("role",user.getRole().getName());
                     var jwtToken = jwtService.generateToken(extraClaims, user);
+                    String redirectToLocation = "http://localhost:4200/login";
+                    String refreshToken = jwtToken;
                     System.out.println(jwtToken);
 
+                    HttpHeaders responseHeaders = new HttpHeaders();
+                    responseHeaders.set("Location", "http://localhost:4200/login");
+                    responseHeaders.set("Access-Control-Allow-Headers", "*");
+                    PasswordlessLoginResponseDTO body = new PasswordlessLoginResponseDTO(jwtToken, refreshToken, redirectToLocation);
+                    return ResponseEntity.ok()
+                            .headers(responseHeaders)
+                            .body(body);
+
+                    //return new ResponseEntity(body, HttpStatus.OK);
             }
+            return new ResponseEntity<>("Invalid email", HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>("Request format invalid", HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/activate")

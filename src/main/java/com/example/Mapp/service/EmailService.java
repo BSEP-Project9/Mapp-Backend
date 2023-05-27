@@ -15,12 +15,12 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -38,15 +38,16 @@ public class EmailService{
      @Async("threadPoolTaskExecutor")
      public void sendConfirmationEmail(User user) throws NoSuchAlgorithmException, InvalidKeyException {
 
-         //String token = UUID.randomUUID().toString();
-         String token = "db92f272-d030-4c54-8d66-338f0a187c51";
+         String token = UUID.randomUUID().toString();
+         //String token = "db92f272-d030-4c54-8d66-338f0a187c51";
          System.out.println("OVO JE RANDOM UUID: " + token);
          EmailConfirmationToken emailConfirmationToken = new EmailConfirmationToken(
                  token,
                  LocalDateTime.now(),
                  LocalDateTime.now().plusMinutes(10),
                  user.getId(),
-                 "CONFIRM_LOGIN"
+                 "CONFIRM_LOGIN",
+                 "PENDING"
          );
          emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
 
@@ -74,22 +75,9 @@ public class EmailService{
         }
 
         public User confirmLogin(String token, String email) throws NoSuchAlgorithmException, InvalidKeyException {
-         //TO DO: Handle expiration date exception
             String decodedToken = decodeRequestToken(token);
-            User user = userRepository.findOneByEmail(email);
-            if(user != null){ //proveravamo da li uopste postoji korisnik s datim email-om
-                EmailConfirmationToken emailConfirmationToken = emailConfirmationTokenService.findByUserIdAndType(user.getId(), "CONFIRM_LOGIN");
-                if(hmacUtil.verifySignature(emailConfirmationToken.getToken(), decodedToken)){
-                    System.out.println("Token je ispravano potpisan");
-                    if(emailConfirmationToken.getExpiredAt().isAfter(LocalDateTime.now())){
-                        System.out.println("Token je vremenski ispravan");
-                        return user;
-                    }
-
-                }
-
-            }
-            return null;
+            User user = checkIsLoginTokenValid(decodedToken, email);
+            return user;
         }
 
         private String decodeRequestToken(String token){
@@ -163,6 +151,53 @@ public class EmailService{
                 }
                 return false;
             }
+            return false;
+        }
+
+        ///************************************************************************************************************
+        private User checkIsLoginTokenValid(String decodedToken,String email) throws NoSuchAlgorithmException, InvalidKeyException {
+            User user = userRepository.findOneByEmail(email);
+            if(user != null){
+                List<EmailConfirmationToken> emailConfirmationTokens
+                        = emailConfirmationTokenService.findAllByUserIdAndTypeAndLinkStatus(user.getId(),
+                                                                                                 "CONFIRM_LOGIN",
+                                                                                                    "PENDING");
+                if(emailConfirmationTokens.size() == 1){ //#1
+                    System.out.println("Lista ima samo jedan clan");
+                    if(isTokenValid(emailConfirmationTokens.get(0), decodedToken)){
+                        emailConfirmationTokens.get(0).setConfirmedAt(LocalDateTime.now());
+                        emailConfirmationTokens.get(0).setLinkStatus("VERIFIED");
+                        emailConfirmationTokenService.saveConfirmationToken(emailConfirmationTokens.get(0));
+                        return user;
+                    }
+                } else if (emailConfirmationTokens.size() > 1) {//#2
+
+                }else {
+                    System.out.println("Token je vec iskoriscen ili je istekao");
+                    return null;
+                }
+
+            }
+         return user;
+        }
+
+        private boolean isTokenListValid(List<EmailConfirmationToken> emailConfirmationTokens, String decodedToken){
+         return true;
+        }
+
+        private boolean isTokenValid(EmailConfirmationToken emailConfirmationToken, String decodedToken) throws NoSuchAlgorithmException, InvalidKeyException {
+            if(hmacUtil.verifySignature(emailConfirmationToken.getToken(), decodedToken)){
+                System.out.println("Token je ispravano potpisan");
+                System.out.println("Datum isteka tokena: " + emailConfirmationToken.getExpiredAt());
+                System.out.println("Vreme provere: " + LocalDateTime.now());
+                if(emailConfirmationToken.getExpiredAt().isAfter(LocalDateTime.now())){
+                    System.out.println("Token je vremenski ispravan");
+                    return true;
+                }
+                System.out.println("Token je istekao");
+                return false;
+            }
+            System.out.println("Token je lose potpisan");
             return false;
         }
 
