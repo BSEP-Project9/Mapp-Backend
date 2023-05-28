@@ -1,9 +1,12 @@
 package com.example.Mapp.controller;
 
-
 import com.example.Mapp.config.JwtService;
 import com.example.Mapp.dto.LoggedUserDTO;
+
+import com.example.Mapp.dto.AdminDTO;
+import com.example.Mapp.dto.ReturningUserDTO;
 import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.model.Skill;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -57,14 +60,25 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity getAllInactiveUsers(){
-        List<UserDTO> users = userService.getAllInactiveUsers();
+        List<ReturningUserDTO> users = userService.getAllInactiveUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @GetMapping("/all")
     public List<User> getAll(){
        return userService.getAll();
-
     }
+
+    @PostMapping("/register-admin")
+    public User registerAdmin(@RequestBody AdminDTO adminDTO){
+        System.out.println("**************** " + adminDTO.getAddress());
+        return  userService.registerAdmin(adminDTO);
+    }
+
+    @PostMapping("/{userId}/add-skill")
+    public void addSkill(@RequestBody Skill skill, @PathVariable("userId") Long userId){
+        userService.addSkill(skill, userId);
+    }
+
 
 }

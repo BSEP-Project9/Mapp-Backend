@@ -3,6 +3,7 @@ package com.example.Mapp.service;
 import com.example.Mapp.confirmation.EmailConfirmationToken;
 import com.example.Mapp.confirmation.EmailConfirmationTokenService;
 import com.example.Mapp.confirmation.HmacUtil;
+import com.example.Mapp.enums.Status;
 import com.example.Mapp.model.User;
 import com.example.Mapp.repository.UserRepository;
 import jakarta.mail.MessagingException;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Comparator;
@@ -115,10 +117,11 @@ public class EmailService{
             try {
                 MimeMessage mimeMessage = emailSender.createMimeMessage(); //ne diraj
                 MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "UTF-8"); //ne diraj
-                String htmlContent = "<h1>Please verify link</h1>"+" <p>Hello, welcome to your <a href=\""+link+"\"> account <a></p>"; //izmeni poruku
+                String htmlContent = "<h1>Please verify link</h1>"+" <p>Hello, click on the link to activate your <a href=\""+link+"\"> account <a></p>"; //izmeni poruku
                 messageHelper.setText(htmlContent, true); //ne diraj
-                messageHelper.setTo("praksaproba1@gmail.com"); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim
-                messageHelper.setSubject("User register ...."); // naslov, promeni
+                System.out.println(user.getEmail());
+                messageHelper.setTo(user.getEmail()); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim
+                messageHelper.setSubject("User registration request answer:"); // naslov, promeni
                 messageHelper.setFrom("praksaproba1@gmail.com"); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim
                 emailSender.send(mimeMessage);
 
@@ -129,11 +132,64 @@ public class EmailService{
 
         }
 
+    @Async("threadPoolTaskExecutor")
+    public void sendEmail(User user, String msg) throws NoSuchAlgorithmException, InvalidKeyException {
+        user.setStatus(Status.INACTIVE);
+        user.setDeclineDateTime(LocalDateTime.now());
+        userRepository.save(user);
+        String token = UUID.randomUUID().toString(); //Random generisana vrednost tokena
+        EmailConfirmationToken emailConfirmationToken = new EmailConfirmationToken(
+                token,
+                LocalDateTime.now(), //datum kreiranja tokena
+                LocalDateTime.now().plusMinutes(10), //datum isteka vazenja tokena {DODATI DRUGU VREDNOST ZA TRAJANJE}
+                user.getId(), // id korisnika kome saljemo email, da bi mogli proveriti da li je na vreme usao na link,
+                "DECLINE_REQUEST"
+        );
+        emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);//cuvamo u bazi
+
+        String signedToken = hmacUtil.signToken(token); //Primenjujemo HMAC algoritam na nas token
+        String encodedToken = Base64.getUrlEncoder().encodeToString(signedToken.getBytes(StandardCharsets.UTF_8));
+        //Kad se primeni HMAC algoritam, token moze da sadrzi specijalne znake
+        //kao sto su '/' i to moze da napravi problem pri citanju putanja iz zaglavlja, npr ..api/v1/67yugu/jg7tyty, ovde je 67yugu/jg7tyty nas token
+        //da bi izbegli ovakve situacije moramo ga jos jednom enkodovati ovim cudom gore da bi se neutralisali ti zbunjujuci znaci
+
+        String link = "http://localhost:8040/api/auth/activate?token=" + encodedToken +"&email="+user.getEmail();
+        //definisemo link u emailu, to ce biti putanja na beku koju zelimo da pogodimo kad korisnik klikne na link iz mejla
+        //prosledjujemo token radi vremenske provere
+        //prosledjujemo mejl da znamo o kom se coveku radi
+
+        //pisanje mejla
+        try {
+            MimeMessage mimeMessage = emailSender.createMimeMessage(); //ne diraj
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "UTF-8"); //ne diraj
+            String htmlContent = msg; //izmeni poruku
+            messageHelper.setText(htmlContent, true); //ne diraj
+            System.out.println(user.getEmail());
+            messageHelper.setTo(user.getEmail()); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim
+            messageHelper.setSubject("User registration request answer:"); // naslov, promeni
+            messageHelper.setFrom("praksaproba1@gmail.com"); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim
+            emailSender.send(mimeMessage);
+
+        }catch (MessagingException e){
+            LOGGER.error("Failed to send email", e);
+            throw new IllegalStateException("Failed to send email");
+        }
+
+    }
+
         public void activateAccount(String token, String email) throws NoSuchAlgorithmException, InvalidKeyException {
             String decodedToken = decodeRequestToken(token);
             User user = userRepository.findOneByEmail(email);
             if(checkIsTokenValid(decodedToken, user)){
                 //....
+                user.setActivated(true);
+                System.out.println(user.getRole().getId());
+                if(user.getRole().getId() == 2){
+                    System.out.println(LocalDate.now());
+                    user.setStartOfEmployment(LocalDate.now());
+                }
+                user.setStatus(Status.ACTIVE);
+                userRepository.save(user);
             }
 
 

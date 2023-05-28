@@ -126,9 +126,19 @@ public class AuthController {
     }
 
     @PostMapping("/approve-account")
-    public ResponseEntity approveUserAccount() throws NoSuchAlgorithmException, InvalidKeyException {
-        User user = userService.getOneByEmail("jelena@gmail.com");
+    public ResponseEntity approveUserAccount(@RequestBody ReturningUserDTO dto) throws NoSuchAlgorithmException, InvalidKeyException {
+        System.out.println(dto.getEmail());
+        User user = userService.getOneByEmail(dto.getEmail());
         emailService.sendActivationEmail(user);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/decline-account")
+    public ResponseEntity declineUserAccount(@RequestBody DeclineDTO dto) throws NoSuchAlgorithmException, InvalidKeyException {
+        System.out.println(dto.getEmail());
+        System.out.println(dto.getMsg());
+        User user = userService.getOneByEmail(dto.getEmail());
+        emailService.sendEmail(user,dto.getMsg());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
