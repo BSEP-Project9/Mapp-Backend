@@ -1,5 +1,6 @@
 package com.example.Mapp.model;
 
+import com.example.Mapp.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -91,4 +93,10 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    @Column
+    private LocalDateTime declineDateTime;
 }

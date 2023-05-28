@@ -1,5 +1,6 @@
 package com.example.Mapp.dto;
 
+import com.example.Mapp.enums.Status;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Contribution;
 import com.example.Mapp.model.Role;
@@ -19,9 +20,9 @@ import java.util.List;
 public class UserDTO {
 
     private String email;
-    @Min(4)
+    @Min(6)
     private String password;
-    @Min(4)
+    @Min(6)
     private String confirmPassword;
 
     private String name;
@@ -33,6 +34,8 @@ public class UserDTO {
     private String role;
 
     private AddressDTO address;
+
+    private Status status;
 
     private List<Skill> skills;
 

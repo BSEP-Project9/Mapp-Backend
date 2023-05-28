@@ -4,6 +4,7 @@ package com.example.Mapp.controller;
 import com.example.Mapp.dto.AdminDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
 import com.example.Mapp.config.JwtService;
+import com.example.Mapp.dto.ReturningUserDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.Skill;
 import com.example.Mapp.model.User;
@@ -63,7 +64,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity getAllInactiveUsers(){
-        List<UserDTO> users = userService.getAllInactiveUsers();
+        List<ReturningUserDTO> users = userService.getAllInactiveUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
