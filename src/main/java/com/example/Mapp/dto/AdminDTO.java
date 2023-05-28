@@ -1,6 +1,5 @@
 package com.example.Mapp.dto;
 
-import com.example.Mapp.dto.AddressDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,21 +7,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReturningUserDTO {
-
-    private Long id;
+public class AdminDTO {
 
     private String email;
+
+    private String password;
 
     private String name;
 
     private String surname;
 
-    //private String phoneNumber;
+    private String phoneNumber;
 
-    //private String role;
-
-    //private AddressDTO address;
-
-    private boolean isActivated;
+    private AddressDTO address;
 }

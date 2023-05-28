@@ -2,16 +2,14 @@ package com.example.Mapp.controller;
 
 import com.example.Mapp.config.JwtService;
 import com.example.Mapp.confirmation.HmacUtil;
-import com.example.Mapp.dto.EmailLoginDTO;
-import com.example.Mapp.dto.LoginDTO;
-import com.example.Mapp.dto.UserDTO;
-import com.example.Mapp.dto.UserTokenStateDTO;
+import com.example.Mapp.dto.*;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.EmailService;
 import com.example.Mapp.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,16 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public UserTokenStateDTO authentication(@RequestBody LoginDTO loginDTO){
+    public ResponseEntity<UserTokenStateDTO> authentication(@RequestBody LoginDTO loginDTO){
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDTO.getEmail(),
@@ -71,41 +62,56 @@ public class AuthController {
                 )
         );
         User loggedUser = (User) auth.getPrincipal();
+        if(!loggedUser.isActivated()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         String role = userService.getByEmail(loginDTO.getEmail()).getRole();
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", loggedUser.getRole().getAuthority());
+        //extraClaims.put("id", loggedUser.getId());
 
         var accessToken = jwtService.generateToken(extraClaims, loggedUser);
         var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), loggedUser);
-
-        //TO DO: generate refresh token and send it to the client
-
-        return new UserTokenStateDTO(accessToken, refreshToken);
+        UserTokenStateDTO userTokenStateDTO = new UserTokenStateDTO(accessToken, refreshToken);
+        return new ResponseEntity<>(userTokenStateDTO, HttpStatus.OK);
     }
 
     @PostMapping("/email-login")
-    public UserTokenStateDTO emailAuthentication(@RequestBody EmailLoginDTO email) throws NoSuchAlgorithmException, InvalidKeyException {
+    public ResponseEntity emailAuthentication(@RequestBody EmailLoginDTO email) throws NoSuchAlgorithmException, InvalidKeyException {
          User user = userService.getUserByEmail(email);
-          if(user != null){
+          if(user != null && user.isActivated()){
             emailService.sendConfirmationEmail(user);
+              return new ResponseEntity(HttpStatus.OK);
         }
-        return null;
+        return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/check-email/confirm")
-    public ResponseEntity<Object> checkEmailVerificationToken(@RequestParam String token, @RequestParam String email) throws NoSuchAlgorithmException, InvalidKeyException {
+    public ResponseEntity checkEmailVerificationToken(@RequestParam String token, @RequestParam String email) throws NoSuchAlgorithmException, InvalidKeyException {
         if(!token.isEmpty() && !email.isEmpty()){
             User user = emailService.confirmLogin(token, email);
                 if(user != null){
                     Map<String, Object> extraClaims = new HashMap<>();
                     extraClaims.put("role",user.getRole().getName());
                     var jwtToken = jwtService.generateToken(extraClaims, user);
+                    String redirectToLocation = "http://localhost:4200/login";
+                    var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
                     System.out.println(jwtToken);
 
+                    HttpHeaders responseHeaders = new HttpHeaders();
+                    responseHeaders.set("Location", "http://localhost:4200/login");
+                    responseHeaders.set("Access-Control-Allow-Headers", "*");
+                    PasswordlessLoginResponseDTO body = new PasswordlessLoginResponseDTO(jwtToken, refreshToken, redirectToLocation);
+                    return ResponseEntity.ok()
+                            .headers(responseHeaders)
+                            .body(body);
+
+                    //return new ResponseEntity(body, HttpStatus.OK);
             }
+            return new ResponseEntity<>("Invalid email", HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>("Request format invalid", HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/activate")
@@ -120,9 +126,19 @@ public class AuthController {
     }
 
     @PostMapping("/approve-account")
-    public ResponseEntity approveUserAccount() throws NoSuchAlgorithmException, InvalidKeyException {
-        User user = userService.getOneByEmail("jelena@gmail.com");
+    public ResponseEntity approveUserAccount(@RequestBody ReturningUserDTO dto) throws NoSuchAlgorithmException, InvalidKeyException {
+        System.out.println(dto.getEmail());
+        User user = userService.getOneByEmail(dto.getEmail());
         emailService.sendActivationEmail(user);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/decline-account")
+    public ResponseEntity declineUserAccount(@RequestBody DeclineDTO dto) throws NoSuchAlgorithmException, InvalidKeyException {
+        System.out.println(dto.getEmail());
+        System.out.println(dto.getMsg());
+        User user = userService.getOneByEmail(dto.getEmail());
+        emailService.sendEmail(user,dto.getMsg());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
