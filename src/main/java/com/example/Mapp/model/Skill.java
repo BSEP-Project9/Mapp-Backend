@@ -1,5 +1,6 @@
 package com.example.Mapp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,4 +21,8 @@ public class Skill {
     @Column
     private int rating;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore
+    private User user;
 }
