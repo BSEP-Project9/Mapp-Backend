@@ -196,7 +196,9 @@ public class UserService implements UserDetailsService {
 
     public void addSkill(Skill skill, Long userId) {
         User user = userRepository.findById(userId).get();
+        user.getSkills().add(skill);
         skill.setUser(user);
         skillRepository.save(skill);
+        userRepository.save(user);
     }
 }
