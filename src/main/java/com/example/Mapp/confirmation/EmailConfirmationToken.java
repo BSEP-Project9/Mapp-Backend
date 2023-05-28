@@ -32,6 +32,9 @@ public class EmailConfirmationToken {
     @Column
     private String type;
 
+    @Column
+    private String linkStatus;
+
     public EmailConfirmationToken(String token,
                              LocalDateTime issuedAt,
                              LocalDateTime confirmedAt,
@@ -42,5 +45,19 @@ public class EmailConfirmationToken {
         this.expiredAt = confirmedAt;
         this.userId = userId;
         this.type = type;
+    }
+
+    public EmailConfirmationToken(String token,
+                                  LocalDateTime issuedAt,
+                                  LocalDateTime confirmedAt,
+                                  Long userId,
+                                  String type,
+                                  String linkStatus) {
+        this.token = token;
+        this.issuedAt = issuedAt;
+        this.expiredAt = confirmedAt;
+        this.userId = userId;
+        this.type = type;
+        this.linkStatus = linkStatus;
     }
 }
