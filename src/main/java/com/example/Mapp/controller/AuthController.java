@@ -7,11 +7,15 @@ import com.example.Mapp.enums.Status;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.EmailService;
 import com.example.Mapp.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -21,6 +25,11 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -60,14 +69,17 @@ public class AuthController {
                 )
         );
         User loggedUser = (User) auth.getPrincipal();
+        String role = userService.getByEmail(loginDTO.getEmail()).getRole();
+
         Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("role",loggedUser.getRole().getName());
-        var jwtToken = jwtService.generateToken(extraClaims, loggedUser);
-        System.out.println(jwtToken);
+        extraClaims.put("role", loggedUser.getRole().getAuthority());
+
+        var accessToken = jwtService.generateToken(extraClaims, loggedUser);
+        var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), loggedUser);
 
         //TO DO: generate refresh token and send it to the client
 
-        return new UserTokenStateDTO(jwtToken, jwtToken);
+        return new UserTokenStateDTO(accessToken, refreshToken);
     }
 
     @PostMapping("/email-login")
@@ -121,4 +133,38 @@ public class AuthController {
         emailService.sendEmail(user,dto.getMsg());
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PostMapping("/refresh-token")
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String authHeader = request.getHeader("Authorization");
+        final String refreshToken;
+        final String userEmail;
+
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            return;
+        }
+        refreshToken = authHeader.substring(7);
+        userEmail = jwtService.extractUsername(refreshToken);
+
+        if(userEmail != null){
+            UserDetails userDetails = this.userService.loadUserByUsername(userEmail);
+            if(jwtService.isTokenValid(refreshToken, userDetails)){
+
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                User loggedUser = (User) userDetails;
+                String role = userService.getByEmail(loggedUser.getEmail()).getRole();
+
+                Map<String, Object> extraClaims = new HashMap<>();
+                extraClaims.put("role", loggedUser.getRole().getAuthority());
+
+                String accessToken = jwtService.generateToken(extraClaims, loggedUser);
+                new ObjectMapper().writeValue(response.getOutputStream(), new UserTokenStateDTO(accessToken, refreshToken));
+            }
+        }
+    }
+
 }

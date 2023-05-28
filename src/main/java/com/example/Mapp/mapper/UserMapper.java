@@ -37,6 +37,8 @@ public class UserMapper {
         dto.setAddress(addressDTO);
         dto.setRole(model.getRole().getName());
         dto.setStatus(model.getStatus());
+        dto.setSkills(model.getSkills());
+
         return dto;
     }
 

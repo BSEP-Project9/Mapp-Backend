@@ -1,6 +1,7 @@
 package com.example.Mapp.service;
 
 import com.example.Mapp.dto.ReturningUserDTO;
+import com.example.Mapp.dto.AdminDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.enums.Status;
 import com.example.Mapp.exceptions.RegistrationException;
@@ -10,11 +11,14 @@ import java.time.Duration;
 import java.util.List;
 import com.example.Mapp.dto.EmailLoginDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
+import com.example.Mapp.mapper.AdminMapper;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
 import com.example.Mapp.model.Role;
+import com.example.Mapp.model.Skill;
 import com.example.Mapp.model.User;
 import com.example.Mapp.repository.RoleRepository;
+import com.example.Mapp.repository.SkillRepository;
 import com.example.Mapp.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -33,15 +37,22 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final AddressService addressService;
+
     private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{6,}$";
+
+    private final SkillRepository skillRepository;
+    private final AdminMapper adminMapper;
+
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
 
 
-    public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository, AddressService addressService) {
+    public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository, AddressService addressService, SkillRepository skillRepository, AdminMapper adminMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.roleRepository = roleRepository;
         this.addressService = addressService;
+        this.skillRepository = skillRepository;
+        this.adminMapper = adminMapper;
     }
 
 
@@ -172,5 +183,20 @@ public class UserService implements UserDetailsService {
             return user.get();
         }
         return null;
+    }
+
+    public User registerAdmin(AdminDTO adminDTO) {
+        User user = adminMapper.DtoToEntity(adminDTO);
+        if(adminDTO.getAddress() != null) {
+            Address address = addressService.create(adminDTO.getAddress());
+            user.setAddress(address);
+        }
+        return userRepository.save(user);
+    }
+
+    public void addSkill(Skill skill, Long userId) {
+        User user = userRepository.findById(userId).get();
+        skill.setUser(user);
+        skillRepository.save(skill);
     }
 }
