@@ -54,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public UserTokenStateDTO authentication(@RequestBody LoginDTO loginDTO){
+    public ResponseEntity<UserTokenStateDTO> authentication(@RequestBody LoginDTO loginDTO){
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDTO.getEmail(),
@@ -62,6 +62,9 @@ public class AuthController {
                 )
         );
         User loggedUser = (User) auth.getPrincipal();
+        if(!loggedUser.isActivated()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         String role = userService.getByEmail(loginDTO.getEmail()).getRole();
 
         Map<String, Object> extraClaims = new HashMap<>();
@@ -69,10 +72,8 @@ public class AuthController {
 
         var accessToken = jwtService.generateToken(extraClaims, loggedUser);
         var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), loggedUser);
-
-        //TO DO: generate refresh token and send it to the client
-
-        return new UserTokenStateDTO(accessToken, refreshToken);
+        UserTokenStateDTO userTokenStateDTO = new UserTokenStateDTO(accessToken, refreshToken);
+        return new ResponseEntity<>(userTokenStateDTO, HttpStatus.OK);
     }
 
     @PostMapping("/email-login")
@@ -93,7 +94,7 @@ public class AuthController {
                     extraClaims.put("role",user.getRole().getName());
                     var jwtToken = jwtService.generateToken(extraClaims, user);
                     String redirectToLocation = "http://localhost:4200/login";
-                    String refreshToken = jwtToken;
+                    var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
                     System.out.println(jwtToken);
 
                     HttpHeaders responseHeaders = new HttpHeaders();
