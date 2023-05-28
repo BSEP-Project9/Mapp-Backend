@@ -69,6 +69,7 @@ public class AuthController {
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", loggedUser.getRole().getAuthority());
+        //extraClaims.put("id", loggedUser.getId());
 
         var accessToken = jwtService.generateToken(extraClaims, loggedUser);
         var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), loggedUser);
@@ -77,12 +78,13 @@ public class AuthController {
     }
 
     @PostMapping("/email-login")
-    public UserTokenStateDTO emailAuthentication(@RequestBody EmailLoginDTO email) throws NoSuchAlgorithmException, InvalidKeyException {
+    public ResponseEntity emailAuthentication(@RequestBody EmailLoginDTO email) throws NoSuchAlgorithmException, InvalidKeyException {
          User user = userService.getUserByEmail(email);
-          if(user != null){
+          if(user != null && user.isActivated()){
             emailService.sendConfirmationEmail(user);
+              return new ResponseEntity(HttpStatus.OK);
         }
-        return null;
+        return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/check-email/confirm")

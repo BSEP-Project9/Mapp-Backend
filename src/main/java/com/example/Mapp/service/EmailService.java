@@ -20,6 +20,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,7 +45,7 @@ public class EmailService{
          EmailConfirmationToken emailConfirmationToken = new EmailConfirmationToken(
                  token,
                  LocalDateTime.now(),
-                 LocalDateTime.now().plusMinutes(10),
+                 LocalDateTime.now().plusMinutes(2),
                  user.getId(),
                  "CONFIRM_LOGIN",
                  "PENDING"
@@ -169,9 +170,20 @@ public class EmailService{
                         emailConfirmationTokens.get(0).setLinkStatus("VERIFIED");
                         emailConfirmationTokenService.saveConfirmationToken(emailConfirmationTokens.get(0));
                         return user;
+                    }else{
+                        return null;
                     }
                 } else if (emailConfirmationTokens.size() > 1) {//#2
-
+                    System.out.println("Lista ima vise clanova");
+                        EmailConfirmationToken emailConfirmationToken = checkAllUserTokens(user);
+                        if(isNewestTokenValid(emailConfirmationToken, decodedToken)) {
+                           emailConfirmationToken.setConfirmedAt(LocalDateTime.now());
+                           emailConfirmationToken.setLinkStatus("VERIFIED");
+                           emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
+                           return user;
+                       }else{
+                            return null;
+                        }
                 }else {
                     System.out.println("Token je vec iskoriscen ili je istekao");
                     return null;
@@ -181,8 +193,23 @@ public class EmailService{
          return user;
         }
 
-        private boolean isTokenListValid(List<EmailConfirmationToken> emailConfirmationTokens, String decodedToken){
-         return true;
+        private EmailConfirmationToken checkAllUserTokens(User user){
+            List<EmailConfirmationToken> emailConfirmationTokens
+                    = emailConfirmationTokenService.findAllByUserIdAndTypeAndLinkStatus(user.getId(),
+                    "CONFIRM_LOGIN",
+                    "PENDING");
+            EmailConfirmationToken newestToken = emailConfirmationTokens.stream()
+                    .max(Comparator.comparing(EmailConfirmationToken::getIssuedAt))
+                    .orElse(null);
+            System.out.println("Ovo je najnoviji token: " + newestToken);
+            emailConfirmationTokens.remove(newestToken);
+
+            for (EmailConfirmationToken emailToken: emailConfirmationTokens) {
+                emailToken.setLinkStatus("EXPIRED");
+                emailConfirmationTokenService.saveConfirmationToken(emailToken);
+            }
+
+         return newestToken;
         }
 
         private boolean isTokenValid(EmailConfirmationToken emailConfirmationToken, String decodedToken) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -194,11 +221,35 @@ public class EmailService{
                     System.out.println("Token je vremenski ispravan");
                     return true;
                 }
+                emailConfirmationToken.setLinkStatus("EXPIRED");
+                emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
                 System.out.println("Token je istekao");
                 return false;
             }
+            emailConfirmationToken.setLinkStatus("EXPIRED");
+            emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
             System.out.println("Token je lose potpisan");
             return false;
         }
+
+    private boolean isNewestTokenValid(EmailConfirmationToken emailConfirmationToken, String decodedToken) throws NoSuchAlgorithmException, InvalidKeyException {
+        if(hmacUtil.verifySignature(emailConfirmationToken.getToken(), decodedToken)){
+            System.out.println("Token je ispravano potpisan");
+            System.out.println("Datum isteka tokena: " + emailConfirmationToken.getExpiredAt());
+            System.out.println("Vreme provere: " + LocalDateTime.now());
+            if(emailConfirmationToken.getExpiredAt().isAfter(LocalDateTime.now())){
+                System.out.println("Token je vremenski ispravan");
+                return true;
+            }
+            emailConfirmationToken.setLinkStatus("EXPIRED");
+            emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
+            System.out.println("Token je istekao");
+            return false;
+        }
+        //emailConfirmationToken.setLinkStatus("EXPIRED");
+        //emailConfirmationTokenService.saveConfirmationToken(emailConfirmationToken);
+        System.out.println("Token je lose potpisan");
+        return false;
+    }
 
 }
