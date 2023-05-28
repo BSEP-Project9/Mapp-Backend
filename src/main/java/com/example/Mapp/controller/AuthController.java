@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -114,6 +115,7 @@ public class AuthController {
         return new ResponseEntity<>("Request format invalid", HttpStatus.BAD_REQUEST);
     }
 
+    @Secured("ROLE_ADMIN")
     @GetMapping("/activate")
     public ResponseEntity activateAccount(@RequestParam String token, @RequestParam String email) throws NoSuchAlgorithmException, InvalidKeyException {
         System.out.println("token: " + token);
@@ -133,6 +135,7 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Secured("ROLE_ADMIN")
     @PostMapping("/decline-account")
     public ResponseEntity declineUserAccount(@RequestBody DeclineDTO dto) throws NoSuchAlgorithmException, InvalidKeyException {
         System.out.println(dto.getEmail());
