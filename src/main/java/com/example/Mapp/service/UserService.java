@@ -33,7 +33,7 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final AddressService addressService;
-    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{4,}$";
+    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{6,}$";
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
 
 

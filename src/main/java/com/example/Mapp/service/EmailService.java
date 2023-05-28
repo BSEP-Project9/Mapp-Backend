@@ -128,7 +128,7 @@ public class EmailService{
             try {
                 MimeMessage mimeMessage = emailSender.createMimeMessage(); //ne diraj
                 MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "UTF-8"); //ne diraj
-                String htmlContent = "<h1>Please verify link</h1>"+" <p>Hello, welcome to your <a href=\""+link+"\"> account <a></p>"; //izmeni poruku
+                String htmlContent = "<h1>Please verify link</h1>"+" <p>Hello, click on the link to activate your <a href=\""+link+"\"> account <a></p>"; //izmeni poruku
                 messageHelper.setText(htmlContent, true); //ne diraj
                 System.out.println(user.getEmail());
                 messageHelper.setTo(user.getEmail()); //ne diraj, ili mozes ako hoces da eksperimentises sa ovim

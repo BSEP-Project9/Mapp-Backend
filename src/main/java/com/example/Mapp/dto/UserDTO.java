@@ -18,9 +18,9 @@ import lombok.NoArgsConstructor;
 public class UserDTO {
 
     private String email;
-    @Min(4)
+    @Min(6)
     private String password;
-    @Min(4)
+    @Min(6)
     private String confirmPassword;
 
     private String name;
