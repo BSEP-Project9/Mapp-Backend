@@ -1,16 +1,14 @@
 package com.example.Mapp.service;
 
-import com.example.Mapp.dto.ReturningUserDTO;
-import com.example.Mapp.dto.AdminDTO;
-import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.dto.*;
 import com.example.Mapp.enums.Status;
 import com.example.Mapp.exceptions.RegistrationException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.List;
-import com.example.Mapp.dto.EmailLoginDTO;
-import com.example.Mapp.dto.LoggedUserDTO;
+
 import com.example.Mapp.mapper.AdminMapper;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
@@ -29,6 +27,8 @@ import java.util.regex.Pattern;
 import java.util.ArrayList;
 
 import java.util.Optional;
+
+
 
 @Service
 public class UserService implements UserDetailsService {
@@ -198,5 +198,43 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(userId).get();
         skill.setUser(user);
         skillRepository.save(skill);
+    }
+
+    public List<EngneerDTO> searchEngineers(String name, String surname, String email, LocalDate dateOfEmployment) {
+        // Implement your search logic here
+        // You can use the provided parameters to construct the search criteria
+
+        // Example: Search by name, email, and date of employment
+        long id = 2;
+        List<User> users = userRepository.findAllByRoleId(id);
+        System.out.println("Stigao Tacka 1");
+        List<EngneerDTO> finalUsers = new ArrayList<>();
+        for(User user : users){
+            EngneerDTO engneerDTO = userMapper.EntityToEngineerDTO(user);
+            finalUsers.add(engneerDTO);
+        }
+        List<EngneerDTO> finalEngineers = new ArrayList<>();
+        for (EngneerDTO user : finalUsers) {
+            if ((name == null || user.getName().toLowerCase().contains(name.toLowerCase())) // probaj sa "" ako ne radi null
+                    && (email == null || user.getEmail().toLowerCase().contains(email.toLowerCase()))
+                    && (surname == null || user.getSurname().toLowerCase().contains(surname.toLowerCase()))
+                    && (dateOfEmployment == null || user.getStartOfEmployment().equals(dateOfEmployment))) {
+                finalEngineers.add(user);
+            }
+        }
+
+        return finalEngineers;
+    }
+
+    public List<EngneerDTO> getAllEngineers(){
+        long id = 2;
+        List<User> users = new ArrayList<>();
+        users =  userRepository.findAllByRoleId(id);
+        List<EngneerDTO> finalUsers = new ArrayList<>();
+        for(User user : users){
+            EngneerDTO engneerDTO = userMapper.EntityToEngineerDTO(user);
+            finalUsers.add(engneerDTO);
+        }
+        return finalUsers;
     }
 }

@@ -1,14 +1,12 @@
 package com.example.Mapp.controller;
 
 
-import com.example.Mapp.dto.AdminDTO;
-import com.example.Mapp.dto.LoggedUserDTO;
+import com.example.Mapp.dto.*;
 import com.example.Mapp.config.JwtService;
-import com.example.Mapp.dto.ReturningUserDTO;
-import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.Skill;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.UserService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -82,6 +81,19 @@ public class UserController {
     @PostMapping("/{userId}/add-skill")
     public void addSkill(@RequestBody Skill skill, @PathVariable("userId") Long userId){
         userService.addSkill(skill, userId);
+    }
+
+
+    @PostMapping("/search")
+    public List<EngneerDTO> searchEngineers(
+            @RequestBody EngneerDTO dto
+    ) {
+        return userService.searchEngineers(dto.getName(),dto.getSurname(),dto.getEmail(), dto.getStartOfEmployment());
+    }
+
+    @GetMapping("/engineers")
+    public List<EngneerDTO> getAllEngineers(){
+        return userService.getAllEngineers();
     }
 
 
