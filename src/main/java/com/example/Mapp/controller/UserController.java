@@ -4,6 +4,7 @@ package com.example.Mapp.controller;
 import com.example.Mapp.dto.AdminDTO;
 import com.example.Mapp.dto.LoggedUserDTO;
 import com.example.Mapp.config.JwtService;
+import com.example.Mapp.dto.UpdatePasswordDto;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.model.Skill;
 import com.example.Mapp.model.User;
@@ -50,6 +51,12 @@ public class UserController {
         return userService.edit(user);
     }
 
+    @PutMapping("/pswd")
+    public ResponseEntity editPassword(@RequestBody UpdatePasswordDto updatePasswordDto) {
+        userService.editPassword(updatePasswordDto);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
     public UserDTO getById(@PathVariable("id") Long id) {
         return userService.getById(id);
@@ -83,5 +90,15 @@ public class UserController {
         userService.addSkill(skill, userId);
     }
 
+    @PutMapping("/block/{email}")
+    public ResponseEntity block(@PathVariable("email") String email) {
+        userService.block(email);
+        return new ResponseEntity(HttpStatus.OK);
+    }
 
+    @PutMapping("/unblock/{email}")
+    public ResponseEntity unblock(@PathVariable("email") String email) {
+        userService.unblock(email);
+        return new ResponseEntity(HttpStatus.OK);
+    }
 }

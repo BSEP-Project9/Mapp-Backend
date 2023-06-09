@@ -1,12 +1,10 @@
 package com.example.Mapp.service;
 
-import com.example.Mapp.dto.AdminDTO;
-import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.dto.*;
 import com.example.Mapp.exceptions.RegistrationException;
 
 import java.util.List;
-import com.example.Mapp.dto.EmailLoginDTO;
-import com.example.Mapp.dto.LoggedUserDTO;
+
 import com.example.Mapp.mapper.AdminMapper;
 import com.example.Mapp.mapper.UserMapper;
 import com.example.Mapp.model.Address;
@@ -16,9 +14,11 @@ import com.example.Mapp.model.User;
 import com.example.Mapp.repository.RoleRepository;
 import com.example.Mapp.repository.SkillRepository;
 import com.example.Mapp.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
@@ -33,11 +33,13 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final AddressService addressService;
-
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     private final SkillRepository skillRepository;
     private final AdminMapper adminMapper;
     private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{4,}$";
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
+
 
 
     public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository, AddressService addressService, SkillRepository skillRepository, AdminMapper adminMapper) {
@@ -180,5 +182,35 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(userId).get();
         skill.setUser(user);
         skillRepository.save(skill);
+    }
+
+    public void editPassword(UpdatePasswordDto updatePasswordDto) {
+        Optional<User> oldUserOptional = userRepository.findByEmail(updatePasswordDto.getEmail());
+        if(oldUserOptional.isEmpty()) {
+            return;
+        }
+        User oldUser = oldUserOptional.get();
+        oldUser.setPassword(passwordEncoder.encode(updatePasswordDto.getUpdatedPassword()));
+        userRepository.save(oldUser);
+    }
+
+    public void block(String email) {
+        Optional<User> oldUserOptional = userRepository.findByEmail(email);
+        if(oldUserOptional.isEmpty()) {
+            return;
+        }
+        User oldUser = oldUserOptional.get();
+        oldUser.setBlocked(true);
+        userRepository.save(oldUser);
+    }
+
+    public void unblock(String email) {
+        Optional<User> oldUserOptional = userRepository.findByEmail(email);
+        if(oldUserOptional.isEmpty()) {
+            return;
+        }
+        User oldUser = oldUserOptional.get();
+        oldUser.setBlocked(false);
+        userRepository.save(oldUser);
     }
 }

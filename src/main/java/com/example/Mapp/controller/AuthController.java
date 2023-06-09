@@ -6,6 +6,7 @@ import com.example.Mapp.dto.EmailLoginDTO;
 import com.example.Mapp.dto.LoginDTO;
 import com.example.Mapp.dto.UserDTO;
 import com.example.Mapp.dto.UserTokenStateDTO;
+import com.example.Mapp.exceptions.UserBlockedException;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.EmailService;
 import com.example.Mapp.service.UserService;
@@ -71,6 +72,9 @@ public class AuthController {
                 )
         );
         User loggedUser = (User) auth.getPrincipal();
+        if (loggedUser.isBlocked()) {
+            throw new UserBlockedException();
+        }
         String role = userService.getByEmail(loginDTO.getEmail()).getRole();
 
         Map<String, Object> extraClaims = new HashMap<>();
@@ -148,6 +152,9 @@ public class AuthController {
                         userDetails.getAuthorities()
                 );
                 User loggedUser = (User) userDetails;
+                if (loggedUser.isBlocked()) {
+                    throw new UserBlockedException();
+                }
                 String role = userService.getByEmail(loggedUser.getEmail()).getRole();
 
                 Map<String, Object> extraClaims = new HashMap<>();

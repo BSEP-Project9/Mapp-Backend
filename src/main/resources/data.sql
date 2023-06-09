@@ -32,6 +32,7 @@ INSERT INTO skill(name, rating) VALUES('English', 4);
 -- USER_SKILLS
 INSERT INTO user_skills(user_id, skills_id) VALUES(1, 2);
 INSERT INTO user_skills(user_id, skills_id) VALUES(1, 3);
+INSERT INTO user_skills(user_id, skills_id) VALUES(3, 1);
 
 -- PROJECT
 INSERT INTO project(name, start_date, end_date) VALUES('Project A', '2023-06-10', '2023-08-10');
