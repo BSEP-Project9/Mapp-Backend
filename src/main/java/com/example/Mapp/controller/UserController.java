@@ -2,6 +2,7 @@ package com.example.Mapp.controller;
 
 
 import com.example.Mapp.config.JwtService;
+import com.example.Mapp.dto.UpdatePasswordDto;
 import com.example.Mapp.dto.LoggedUserDTO;
 import com.example.Mapp.dto.AdminDTO;
 import com.example.Mapp.dto.ReturningUserDTO;
@@ -14,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -46,6 +46,12 @@ public class UserController {
     @PutMapping()
     public User edit(@RequestBody UserDTO user) {
         return userService.edit(user);
+    }
+
+    @PutMapping("/pswd")
+    public ResponseEntity editPassword(@RequestBody UpdatePasswordDto updatePasswordDto) {
+        userService.editPassword(updatePasswordDto);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @Secured({"ROLE_ADMIN", "ROLE_SWE", "ROLE_PM"})
@@ -85,4 +91,15 @@ public class UserController {
         userService.addSkill(skill, userId);
     }
 
+    @PutMapping("/block/{email}")
+    public ResponseEntity block(@PathVariable("email") String email) {
+        userService.block(email);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @PutMapping("/unblock/{email}")
+    public ResponseEntity unblock(@PathVariable("email") String email) {
+        userService.unblock(email);
+        return new ResponseEntity(HttpStatus.OK);
+    }
 }

@@ -2,6 +2,11 @@ package com.example.Mapp.controller;
 
 import com.example.Mapp.config.JwtService;
 import com.example.Mapp.confirmation.HmacUtil;
+import com.example.Mapp.dto.EmailLoginDTO;
+import com.example.Mapp.dto.LoginDTO;
+import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.dto.UserTokenStateDTO;
+import com.example.Mapp.exceptions.UserBlockedException;
 import com.example.Mapp.dto.*;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.EmailService;
@@ -17,7 +22,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -62,9 +66,14 @@ public class AuthController {
                 )
         );
         User loggedUser = (User) auth.getPrincipal();
+
+        if (loggedUser.isBlocked()) {
+            throw new UserBlockedException();
+        }
         if(!loggedUser.isActivated()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
         String role = userService.getByEmail(loginDTO.getEmail()).getRole();
 
         Map<String, Object> extraClaims = new HashMap<>();
@@ -164,6 +173,9 @@ public class AuthController {
                         userDetails.getAuthorities()
                 );
                 User loggedUser = (User) userDetails;
+                if (loggedUser.isBlocked()) {
+                    throw new UserBlockedException();
+                }
                 String role = userService.getByEmail(loggedUser.getEmail()).getRole();
 
                 Map<String, Object> extraClaims = new HashMap<>();
