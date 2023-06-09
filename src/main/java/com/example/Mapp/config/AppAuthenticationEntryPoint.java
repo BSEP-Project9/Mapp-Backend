@@ -17,11 +17,11 @@ public class AppAuthenticationEntryPoint implements AuthenticationEntryPoint {
         setResponseError(response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
     }
 
-    @ExceptionHandler(value = {AccessDeniedException.class})
-    public void commence(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
-        // 403
-        setResponseError(response, HttpServletResponse.SC_FORBIDDEN, String.format("Access Denies: %s", accessDeniedException.getMessage()));
-    }
+//    @ExceptionHandler(value = {AccessDeniedException.class})
+//    public void commence(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
+//        // 403
+//        setResponseError(response, HttpServletResponse.SC_FORBIDDEN, String.format("Access Denies: %s", accessDeniedException.getMessage()));
+//    }
 
     @ExceptionHandler (value = {ChangeSetPersister.NotFoundException.class})
     public void commence(HttpServletRequest request, HttpServletResponse response, ChangeSetPersister.NotFoundException notFoundException) throws IOException {

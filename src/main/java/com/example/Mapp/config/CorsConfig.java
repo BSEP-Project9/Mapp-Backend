@@ -7,10 +7,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*") // Dozvoli pristup sa svih izvora, možete prilagoditi prema svojim potrebama
+                .allowedOrigins("http://localhost:4200")
                 .allowedMethods("GET", "POST", "PUT", "DELETE") // Dozvoli određene HTTP metode
-                .allowedHeaders("Content-Type", "Authorization") // Dozvoli određene zaglavlja
-                //.allowCredentials(true) // Dozvoli slanje kredencijala (npr. korišćenje sesija)
-                .maxAge(3600); // Postavi vreme trajanja CORS konfiguracije
+                .allowedHeaders("*");
     }
 }

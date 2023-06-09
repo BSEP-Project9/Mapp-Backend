@@ -1,8 +1,14 @@
 package com.example.Mapp.service;
 
 import com.example.Mapp.dto.*;
+import com.example.Mapp.dto.ReturningUserDTO;
+import com.example.Mapp.dto.AdminDTO;
+import com.example.Mapp.dto.UserDTO;
+import com.example.Mapp.enums.Status;
 import com.example.Mapp.exceptions.RegistrationException;
 
+import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 
 import com.example.Mapp.mapper.AdminMapper;
@@ -35,11 +41,10 @@ public class UserService implements UserDetailsService {
     private final AddressService addressService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{6,}$";
     private final SkillRepository skillRepository;
     private final AdminMapper adminMapper;
-    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{4,}$";
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
-
 
 
     public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository, AddressService addressService, SkillRepository skillRepository, AdminMapper adminMapper) {
@@ -68,12 +73,23 @@ public class UserService implements UserDetailsService {
         } catch (RegistrationException e) {
             throw e;
         }
-        Optional<User> user = userRepository.findByEmailAndPassword(userDTO.getEmail(), userDTO.getPassword());
+        Optional<User> user = userRepository.findByEmail(userDTO.getEmail());
         if (!user.isPresent()) {
             User credentials = create(userDTO);
             userRepository.save(credentials);
             return credentials;
-        } else return null;
+        } else {
+            Duration duration = Duration.between(user.get().getDeclineDateTime(), LocalDateTime.now());
+            long daysPassed = duration.toDays();
+            long secondsPassed = duration.toSeconds();
+            if(user.get().getStatus() == Status.INACTIVE && secondsPassed >= 25){
+                userRepository.delete(user.get());
+                User credentials = create(userDTO);
+                userRepository.save(credentials);
+                return credentials;
+            }
+        }
+        return null;
     }
 
     public List<User> getAll() {
@@ -111,10 +127,11 @@ public class UserService implements UserDetailsService {
         Address address = addressService.create(userDTO.getAddress());
         credentials.setRole(role);
         credentials.setAddress(address);
+        credentials.setStatus(Status.PENDING);
         return credentials;
     }
 
-    public List<UserDTO> getAllInactiveUsers() {
+    public List<ReturningUserDTO> getAllInactiveUsers() {
         List<User> users = userRepository.findAll();
         List<User> usersCopy = new ArrayList<>();
         users.forEach(user -> {
@@ -122,9 +139,9 @@ public class UserService implements UserDetailsService {
                 usersCopy.add(user);
             }
         });
-        List<UserDTO> usersFinal = new ArrayList<>();
+        List<ReturningUserDTO> usersFinal = new ArrayList<>();
         usersCopy.forEach(user -> {
-            usersFinal.add(userMapper.EntityToDto(user));
+            usersFinal.add(userMapper.EntityToReturningDTO(user));
         });
         return usersFinal;
     }
@@ -180,8 +197,10 @@ public class UserService implements UserDetailsService {
 
     public void addSkill(Skill skill, Long userId) {
         User user = userRepository.findById(userId).get();
+        user.getSkills().add(skill);
         skill.setUser(user);
         skillRepository.save(skill);
+        userRepository.save(user);
     }
 
     public void editPassword(UpdatePasswordDto updatePasswordDto) {
