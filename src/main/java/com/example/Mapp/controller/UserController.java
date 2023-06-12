@@ -54,7 +54,7 @@ public class UserController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @Secured({"ROLE_ADMIN", "ROLE_SWE", "ROLE_PM"})
+//    @Secured({"ROLE_ADMIN", "ROLE_SWE", "ROLE_PM"})
     @GetMapping("/{id}")
     public UserDTO getById(@PathVariable("id") Long id) {
         return userService.getById(id);
