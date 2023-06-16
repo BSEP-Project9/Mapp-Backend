@@ -70,9 +70,9 @@ public class EmailService{
              messageHelper.setSubject("New login detected");
              messageHelper.setFrom("praksaproba1@gmail.com");
              emailSender.send(mimeMessage);
-
+             LOGGER.info("Email send to user: " + user.getEmail() + ", for passwordless login");
          }catch (MessagingException e){
-             LOGGER.error("Failed to send email", e);
+             LOGGER.error("Failed to send email to user: "+ user.getEmail(), e);
              throw new IllegalStateException("Failed to send email");
          }
         }
@@ -126,7 +126,7 @@ public class EmailService{
                 emailSender.send(mimeMessage);
 
             }catch (MessagingException e){
-                LOGGER.error("Failed to send email", e);
+               // LOGGER.error("Failed to send email", e);
                 throw new IllegalStateException("Failed to send email");
             }
 
@@ -171,7 +171,7 @@ public class EmailService{
             emailSender.send(mimeMessage);
 
         }catch (MessagingException e){
-            LOGGER.error("Failed to send email", e);
+            //LOGGER.error("Failed to send email", e);
             throw new IllegalStateException("Failed to send email");
         }
 

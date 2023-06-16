@@ -14,6 +14,8 @@ import com.example.Mapp.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -39,6 +42,8 @@ public class AuthController {
 
     private final EmailService emailService;
     private final HmacUtil hmacUtil;
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     public AuthController(JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, EmailService emailService, HmacUtil hmacUtil) {
         this.jwtService = jwtService;
@@ -68,9 +73,11 @@ public class AuthController {
         User loggedUser = (User) auth.getPrincipal();
 
         if (loggedUser.isBlocked()) {
+            LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user is blocked");
             throw new UserBlockedException();
         }
         if(!loggedUser.isActivated()){
+            LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user account is not activated");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
@@ -88,12 +95,15 @@ public class AuthController {
 
     @PostMapping("/email-login")
     public ResponseEntity emailAuthentication(@RequestBody EmailLoginDTO email) throws NoSuchAlgorithmException, InvalidKeyException {
-         User user = userService.getUserByEmail(email);
-          if(user != null && user.isActivated()){
+        User user = userService.getUserByEmail(email);
+        if(user == null || !user.isActivated()){
+            LOGGER.warn("User: "+ email.getEmail() + " failed to login with email; REASON: account is not activated");
+            throw new UsernameNotFoundException("User with given email ot found: " + email.getEmail());
+        }else {
+            LOGGER.info("user: " + user.getEmail() + ", requested email for passwordless login");
             emailService.sendConfirmationEmail(user);
-              return new ResponseEntity(HttpStatus.OK);
-        }
-        return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(HttpStatus.OK);
+          }
     }
 
     @GetMapping("/check-email/confirm")
@@ -120,6 +130,7 @@ public class AuthController {
             }
             return new ResponseEntity<>("Invalid email", HttpStatus.BAD_REQUEST);
         }
+        LOGGER.warn("Confirmation link for user: " + email + " is invalid; REASON: link structure changed");
         return new ResponseEntity<>("Request format invalid", HttpStatus.BAD_REQUEST);
     }
 
