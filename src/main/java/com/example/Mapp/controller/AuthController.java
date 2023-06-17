@@ -10,6 +10,7 @@ import com.example.Mapp.exceptions.UserBlockedException;
 import com.example.Mapp.dto.*;
 import com.example.Mapp.model.User;
 import com.example.Mapp.service.EmailService;
+import com.example.Mapp.service.NotificationService;
 import com.example.Mapp.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,12 +46,15 @@ public class AuthController {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
-    public AuthController(JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, EmailService emailService, HmacUtil hmacUtil) {
+    private final NotificationService notificationService;
+
+    public AuthController(JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, EmailService emailService, HmacUtil hmacUtil, NotificationService notificationService) {
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.emailService = emailService;
         this.hmacUtil = hmacUtil;
+        this.notificationService = notificationService;
     }
 
     @PostMapping
@@ -75,10 +79,12 @@ public class AuthController {
 
             if (loggedUser.isBlocked()) {
                 LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user is blocked");
+                notificationService.sendLoggerNotificationEmail("User: " +  (loginDTO.getEmail()).split("@")[0] +"****"+ ", failed to login; REASON: user account is blocked");
                 throw new UserBlockedException();
             }
             if(!loggedUser.isActivated()){
                 LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user account is not activated");
+                notificationService.sendLoggerNotificationEmail("User: " +  (loginDTO.getEmail()).split("@")[0] +"****"+ ", failed to login; REASON: user account is not activated");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
@@ -106,6 +112,7 @@ public class AuthController {
         User user = userService.getUserByEmail(email);
         if(user == null || !user.isActivated()){
             LOGGER.warn("User: "+ email.getEmail() + " failed to login with email; REASON: account is not activated");
+            notificationService.sendLoggerNotificationEmail("User: " +  (email.getEmail()).split("@")[0] +"****"+ ", with email; REASON: account is not activated");
             throw new UsernameNotFoundException("User with given email ot found: " + email.getEmail());
         }else {
             LOGGER.info("user: " + user.getEmail() + ", requested email for passwordless login");
