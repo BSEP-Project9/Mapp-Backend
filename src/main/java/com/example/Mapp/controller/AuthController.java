@@ -64,33 +64,41 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<UserTokenStateDTO> authentication(@RequestBody LoginDTO loginDTO){
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginDTO.getEmail(),
-                        loginDTO.getPassword()
-                )
-        );
-        User loggedUser = (User) auth.getPrincipal();
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginDTO.getEmail(),
+                            loginDTO.getPassword()
+                    )
+            );
+            User loggedUser = (User) auth.getPrincipal();
 
-        if (loggedUser.isBlocked()) {
-            LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user is blocked");
-            throw new UserBlockedException();
-        }
-        if(!loggedUser.isActivated()){
-            LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user account is not activated");
+            if (loggedUser.isBlocked()) {
+                LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user is blocked");
+                throw new UserBlockedException();
+            }
+            if(!loggedUser.isActivated()){
+                LOGGER.warn("User: " + loginDTO.getEmail() + ", failed to login; REASON: user account is not activated");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            String role = userService.getByEmail(loginDTO.getEmail()).getRole();
+
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("role", loggedUser.getRole().getAuthority());
+            //extraClaims.put("id", loggedUser.getId());
+
+            var accessToken = jwtService.generateToken(extraClaims, loggedUser);
+            var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), loggedUser);
+            UserTokenStateDTO userTokenStateDTO = new UserTokenStateDTO(accessToken, refreshToken);
+            LOGGER.info("User successfully logged in with email and password");
+            return new ResponseEntity<>(userTokenStateDTO, HttpStatus.OK);
+
+        }catch (Error e){
+            LOGGER.error("Bad credentials", e);
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        String role = userService.getByEmail(loginDTO.getEmail()).getRole();
-
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("role", loggedUser.getRole().getAuthority());
-        //extraClaims.put("id", loggedUser.getId());
-
-        var accessToken = jwtService.generateToken(extraClaims, loggedUser);
-        var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), loggedUser);
-        UserTokenStateDTO userTokenStateDTO = new UserTokenStateDTO(accessToken, refreshToken);
-        return new ResponseEntity<>(userTokenStateDTO, HttpStatus.OK);
     }
 
     @PostMapping("/email-login")
@@ -122,11 +130,11 @@ public class AuthController {
                     responseHeaders.set("Location", "http://localhost:4200/login");
                     responseHeaders.set("Access-Control-Allow-Headers", "*");
                     PasswordlessLoginResponseDTO body = new PasswordlessLoginResponseDTO(jwtToken, refreshToken, redirectToLocation);
+                    LOGGER.info("User " + email + "successfully logged in via email link");
                     return ResponseEntity.ok()
                             .headers(responseHeaders)
                             .body(body);
 
-                    //return new ResponseEntity(body, HttpStatus.OK);
             }
             return new ResponseEntity<>("Invalid email", HttpStatus.BAD_REQUEST);
         }
