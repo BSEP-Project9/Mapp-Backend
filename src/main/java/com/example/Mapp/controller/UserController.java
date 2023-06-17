@@ -54,7 +54,7 @@ public class UserController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @Secured({"ROLE_ADMIN", "ROLE_SWE", "ROLE_PM"})
+//    @Secured({"ROLE_ADMIN", "ROLE_SWE", "ROLE_PM"})
     @GetMapping("/{id}")
     public UserDTO getById(@PathVariable("id") Long id) {
         return userService.getById(id);
@@ -102,4 +102,16 @@ public class UserController {
         userService.unblock(email);
         return new ResponseEntity(HttpStatus.OK);
     }
+
+    @GetMapping("/pm/{id}")
+    public List<User> getAllByPm(@PathVariable("id") Long id) {
+        return userService.getAllByPm(id);
+    }
+
+    @Secured("ROLE_HR")
+    @GetMapping("/all/workers")
+    public List<User> getAllWorkers(){
+        return userService.getAllWorkers();
+    }
+
 }

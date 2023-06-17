@@ -13,10 +13,7 @@ import java.util.List;
 
 import com.example.Mapp.mapper.AdminMapper;
 import com.example.Mapp.mapper.UserMapper;
-import com.example.Mapp.model.Address;
-import com.example.Mapp.model.Role;
-import com.example.Mapp.model.Skill;
-import com.example.Mapp.model.User;
+import com.example.Mapp.model.*;
 import com.example.Mapp.repository.RoleRepository;
 import com.example.Mapp.repository.SkillRepository;
 import com.example.Mapp.repository.UserRepository;
@@ -39,6 +36,8 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final AddressService addressService;
+    private final ContributionService contributionService;
+    private final ProjectService projectService;
     @Autowired
     private PasswordEncoder passwordEncoder;
     private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{6,}$";
@@ -47,13 +46,17 @@ public class UserService implements UserDetailsService {
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
 
 
-    public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository, AddressService addressService, SkillRepository skillRepository, AdminMapper adminMapper) {
+    public UserService(UserRepository userRepository, UserMapper userMapper, RoleRepository roleRepository,
+                       AddressService addressService, SkillRepository skillRepository, AdminMapper adminMapper,
+                       ContributionService contributionService, ProjectService projectService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.roleRepository = roleRepository;
         this.addressService = addressService;
         this.skillRepository = skillRepository;
         this.adminMapper = adminMapper;
+        this.contributionService = contributionService;
+        this.projectService = projectService;
     }
 
 
@@ -94,6 +97,26 @@ public class UserService implements UserDetailsService {
 
     public List<User> getAll() {
         return userRepository.findAll();
+    }
+
+    public List<User> getAllWorkers() {
+        List<Contribution> contributions = contributionService.getAll();
+        List<User> workers = extractWorkersFromContributions(contributions);
+
+        return workers;
+    }
+
+    private List<User> extractWorkersFromContributions(List<Contribution> contributions) {
+        List<User> workers = new ArrayList<>();
+        for (Contribution c: contributions) {
+            if (c.getWorker().getRole().getAuthority().equals("ROLE_SWE") || c.getWorker().getRole().getAuthority().equals("ROLE_PM")) {
+                if (!workers.contains(c.getWorker())) {
+                    workers.add(c.getWorker());
+                }
+            }
+        }
+
+        return workers;
     }
 
     public User edit(UserDTO user){
@@ -232,4 +255,40 @@ public class UserService implements UserDetailsService {
         oldUser.setBlocked(false);
         userRepository.save(oldUser);
     }
+
+    public List<User> getAllByPm(Long pmId) {
+        List<Contribution> pmContributions = contributionService.getAllByWorker(pmId);
+        List<Project> pmProjects = extractProjectsFromContributions(pmContributions);
+        List<User> pmEmployees = new ArrayList<>();
+
+        for (Project p: pmProjects) {
+            List<User> employees = contributionService.getAllWorkerByProject(p.getId());
+            if (pmEmployees.isEmpty()) {
+                for (User e: employees) {
+                    if (!e.getId().equals(pmId)) {
+                        pmEmployees.add(e);
+                    }
+                }
+            }
+
+            for (User e: employees) {
+                if (e.getId().equals(pmId)) {
+                    continue;
+                }
+                if (!pmEmployees.contains(e)) {
+                    pmEmployees.add(e);
+                }
+            }
+        }
+        return pmEmployees;
+    }
+
+    private List<Project> extractProjectsFromContributions(List<Contribution> contributions) {
+        List<Project> projects = new ArrayList<>();
+        for (Contribution c: contributions) {
+            projects.add(c.getProject());
+        }
+        return projects;
+    }
+
 }

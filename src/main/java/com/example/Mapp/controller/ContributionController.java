@@ -2,7 +2,6 @@ package com.example.Mapp.controller;
 
 
 import com.example.Mapp.dto.ContributionToDto;
-import com.example.Mapp.dto.DeleteContributionDto;
 import com.example.Mapp.dto.ProjectContributionDto;
 import com.example.Mapp.model.Contribution;
 import com.example.Mapp.model.Project;
@@ -72,6 +71,13 @@ public class ContributionController {
     public ResponseEntity<Void> deleteEmployeesFromProject(@PathVariable("workerId") Long workerId, @PathVariable("projectId") Long projectId) {
         contributionService.deleteEmployeesFromProject(workerId, projectId);
         return ResponseEntity.ok().build();
+    }
+
+    @Secured({"ROLE_PM", "ROLE_HR"})
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/projects/worker/{id}")
+    public List<Project> getAllProjectsByWorker(@PathVariable("id") Long workerId) {
+        return contributionService.getAllProjectsByWorker(workerId);
     }
 
 }

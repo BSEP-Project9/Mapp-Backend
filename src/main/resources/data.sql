@@ -45,3 +45,7 @@ INSERT INTO contribution(job_description, job_start_time, job_end_time, project_
 VALUES('sdad', '2023-02-15', '2023-02-10', 2, 3);
 INSERT INTO contribution(job_description, job_start_time, job_end_time, project_id, worker_id)
 VALUES('ghfg', '2022-11-16', '2023-01-12', 3, 4);
+INSERT INTO contribution(job_description, job_start_time, job_end_time, project_id, worker_id)
+VALUES('ghfg', '2022-11-16', '2023-01-12', 2, 6);
+INSERT INTO contribution(job_description, job_start_time, job_end_time, project_id, worker_id)
+VALUES('ghfg', '2022-11-16', '2023-01-12', 3, 6);
