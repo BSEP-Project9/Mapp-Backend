@@ -50,7 +50,7 @@ public class User implements UserDetails {
     @OneToOne
     private Address address;
 
-    @OneToMany
+    @OneToMany(mappedBy = "user")
     private List<Skill> skills;
 
     @OneToMany(mappedBy = "worker", fetch = FetchType.LAZY)
@@ -58,6 +58,9 @@ public class User implements UserDetails {
 
     @Column
     private LocalDate startOfEmployment;
+
+    @Column(columnDefinition = "boolean default false")
+    private boolean blocked;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
