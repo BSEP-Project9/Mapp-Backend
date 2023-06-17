@@ -90,6 +90,12 @@
 			<artifactId>spring-security-oauth2-jose</artifactId>
 			<version>${spring-security-oauth2.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.modelmapper</groupId>
+			<artifactId>modelmapper</artifactId>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
