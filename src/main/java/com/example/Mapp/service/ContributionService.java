@@ -63,6 +63,15 @@ public class ContributionService {
         return users;
     }
 
+    public List<Project> getAllProjectsByWorker(Long workerId) {
+        List<Contribution> contributions = contributionRepository.findByWorkerId(workerId);
+        List<Project> projects = new ArrayList<>();
+        for (Contribution c: contributions) {
+            projects.add(c.getProject());
+        }
+        return projects;
+    }
+
     public List<ProjectContributionDto> getAllProjectByWorker(Long workerId) {
         List<Contribution> contributions = contributionRepository.findByWorkerId(workerId);
         List<ProjectContributionDto> projectContributionDtos = new ArrayList<>();

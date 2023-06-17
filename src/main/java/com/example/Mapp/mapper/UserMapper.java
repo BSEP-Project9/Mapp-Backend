@@ -1,4 +1,5 @@
 package com.example.Mapp.mapper;
+import com.example.Mapp.dto.EngneerDTO;
 import com.example.Mapp.dto.ReturningUserDTO;
 import com.example.Mapp.dto.AddressDTO;
 import com.example.Mapp.dto.UserDTO;
@@ -8,6 +9,9 @@ import com.example.Mapp.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class UserMapper {
@@ -67,5 +71,15 @@ public class UserMapper {
         dto.setSurname(model.getSurname());
         dto.setActivated(model.isActivated());
         return dto;
+    }
+
+    public EngneerDTO EntityToEngineerDTO(User user) {
+        EngneerDTO dto = new EngneerDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setSurname(user.getSurname());
+        dto.setEmail(user.getEmail());
+        dto.setStartOfEmployment(user.getStartOfEmployment());
+        return  dto;
     }
 }
